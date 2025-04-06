@@ -1,0 +1,546 @@
+:root {
+    --background-color: #121212; /* Slightly darker background */
+    --card-background: #1e1e1e; /* Darker cards */
+    --text-color: #e0e0e0;
+    --text-muted: #a0a0a0; /* For less important text */
+    --primary-color: #29b6f6; /* Light Blue - more modern */
+    --primary-darker: #0288d1;
+    --secondary-color: #80cbc4; /* Teal accent */
+    --warning-color: #ffa726; /* Orange */
+    --danger-color: #ef5350; /* Red */
+    --border-color: #333333; /* Subtler borders */
+    --input-background: #2a2a2a;
+    --progress-background: #424242;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --modal-backdrop: rgba(0, 0, 0, 0.8);
+    --border-radius: 8px;
+    --spacing-unit: 16px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px; /* Base font size */
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-unit);
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 12px */
+}
+
+h1 {
+    font-size: 1.75rem; /* 28px */
+    color: var(--primary-color);
+}
+
+h2 {
+    font-size: 1.25rem; /* 20px */
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: calc(var(--spacing-unit) * 0.5); /* 8px */
+    margin-bottom: var(--spacing-unit);
+}
+
+h2 .emoji {
+    margin-right: 8px;
+}
+
+/* Buttons */
+button,
+.button {
+    cursor: pointer;
+    padding: calc(var(--spacing-unit) * 0.75) var(--spacing-unit); /* 12px 16px */
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem; /* 16px */
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button:active,
+.button:active {
+    transform: scale(0.98);
+    box-shadow: none;
+}
+
+.button-primary {
+    background-color: var(--primary-color);
+    color: #000; /* Black text on light blue for contrast */
+}
+
+.button-primary:hover {
+    background-color: var(--primary-darker);
+    color: #fff;
+}
+
+.button-secondary {
+    background-color: var(--secondary-color);
+    color: #000;
+}
+
+.button-secondary:hover {
+    background-color: #4db6ac;
+}
+
+.button-danger {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    box-shadow: none;
+    padding: 5px;
+    font-size: 1.2em; /* Make icons slightly larger */
+}
+
+.button-danger:hover {
+    color: #d32f2f;
+    background-color: rgba(239, 83, 80, 0.1);
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-unit);
+    margin-bottom: var(--spacing-unit);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Controls */
+.header-controls {
+    display: flex;
+    flex-direction: column; /* Mobile first */
+    align-items: flex-start;
+    margin-bottom: var(--spacing-unit);
+}
+
+.header-controls h1 {
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* Space below title on mobile */
+}
+
+.header-controls button {
+    width: 100%; /* Full width button on mobile */
+}
+
+/* Input Section */
+.input-section label {
+    display: block;
+    margin-bottom: calc(var(--spacing-unit) * 0.5); /* 8px */
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.input-section textarea {
+    width: 100%;
+    padding: calc(var(--spacing-unit) * 0.75); /* 12px */
+    margin-bottom: var(--spacing-unit);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    background-color: var(--input-background);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.input-section textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(41, 182, 246, 0.3);
+}
+
+.input-section button {
+    width: 100%; /* Full width button on mobile */
+}
+
+.api-notice {
+    font-size: 0.8rem; /* 12.8px */
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: var(--spacing-unit);
+}
+
+/* Summary Section */
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-unit);
+}
+
+.summary-header h2 {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.goal-status {
+    font-size: 0.8rem; /* 12.8px */
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px; /* Pill shape */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.goal-status.deficit {
+    background-color: var(--secondary-color);
+    color: #000;
+}
+
+.goal-status.surplus {
+    background-color: var(--warning-color);
+    color: #000;
+}
+
+.macro-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr; /* Name, Total (Mobile) */
+    gap: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* 8px 16px */
+    align-items: center;
+}
+
+.macro-grid .header {
+    display: none; /* Hide headers on mobile, implied by structure */
+}
+
+/* Style each macro row container */
+.macro-row {
+    grid-column: span 2; /* Each row takes full width on mobile */
+    display: grid;
+    grid-template-columns: 1.5fr 1fr; /* Match parent columns */
+    gap: calc(var(--spacing-unit) * 0.5) var(--spacing-unit);
+    align-items: center;
+    padding: calc(var(--spacing-unit) * 0.5) 0; /* 8px top/bottom padding */
+    border-bottom: 1px solid var(--border-color);
+}
+.macro-row:last-child {
+    border-bottom: none;
+}
+
+.macro-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.macro-total {
+    text-align: right;
+    font-size: 1rem;
+}
+
+.macro-goal {
+    display: none; /* Hidden on mobile */
+}
+
+.progress-cell {
+    grid-column: span 2; /* Progress takes full width below name/total */
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 0.75); /* 12px */
+    margin-top: calc(var(--spacing-unit) * 0.25); /* 4px */
+}
+
+.progress-bar-container {
+    flex-grow: 1;
+    background-color: var(--progress-background);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 10px; /* Thinner bar */
+}
+
+.progress-bar {
+    background-color: var(--primary-color);
+    height: 100%;
+    width: 0;
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1), background-color 0.4s ease-out;
+}
+
+.progress-bar.warning { background-color: var(--warning-color); }
+.progress-bar.danger { background-color: var(--danger-color); }
+
+.progress-cell span { /* Percentage text */
+    min-width: 45px;
+    text-align: right;
+    font-size: 0.9rem; /* 14.4px */
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Entries List Section */
+.entries-section h2 {
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* Less margin before list */
+}
+
+.entries-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.entries-section li {
+    background-color: transparent; /* Use card background */
+    padding: calc(var(--spacing-unit) * 0.75) 0; /* 12px top/bottom */
+    margin-bottom: 0;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+.entries-section li:last-child {
+    border-bottom: none;
+}
+
+/* Hover effect for list items */
+.entries-section li:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.entry-details {
+    flex-grow: 1;
+    margin-right: var(--spacing-unit);
+}
+
+.entry-description {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500; /* Normal weight */
+    font-size: 0.95rem;
+}
+
+.entry-macros {
+    font-size: 0.8rem; /* 12.8px */
+    color: var(--text-muted);
+}
+
+.entry-actions {
+   /* Styles defined in .button-danger */
+}
+
+/* AI Comment Section */
+.comment-section h2 {
+    color: var(--secondary-color); /* Use accent color */
+    border: none; /* No border for this title */
+}
+
+.comment-section p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-color);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background-color: var(--modal-backdrop);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background-color: var(--card-background);
+    margin: 15% auto; /* Adjust vertical margin for mobile */
+    padding: calc(var(--spacing-unit) * 1.5); /* 24px */
+    border: 1px solid var(--border-color);
+    width: 90%;
+    max-width: 450px;
+    border-radius: var(--border-radius);
+    position: relative;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.modal-content h2 {
+    border: none;
+    margin-bottom: var(--spacing-unit);
+    text-align: center;
+    font-size: 1.4rem;
+}
+
+.close-button {
+    color: var(--text-muted);
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: var(--text-color);
+}
+
+.goal-input-group {
+    margin-bottom: var(--spacing-unit);
+}
+
+.goal-input-group label {
+    display: block;
+    margin-bottom: calc(var(--spacing-unit) * 0.5); /* 8px */
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.goal-input-group input[type="number"] {
+    width: 100%;
+    padding: calc(var(--spacing-unit) * 0.75); /* 12px */
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    background-color: var(--input-background);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    font-size: 1rem;
+}
+
+.goal-input-group input[type="number"]:focus {
+     outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(41, 182, 246, 0.3);
+}
+
+#saveGoalsButton {
+    width: 100%;
+    margin-top: calc(var(--spacing-unit) * 0.5); /* 8px */
+}
+
+.modal-notice {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: var(--spacing-unit);
+    text-align: center;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-20px) scale(0.98); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* --- Desktop and Tablet Styles --- */
+@media (min-width: 768px) {
+    html {
+        font-size: 17px; /* Slightly larger base font */
+    }
+
+    .container {
+        padding: calc(var(--spacing-unit) * 1.5); /* 24px */
+    }
+
+    .header-controls {
+        flex-direction: row; /* Side by side */
+        align-items: center;
+    }
+
+    .header-controls h1 {
+        margin-bottom: 0;
+    }
+
+    .header-controls button,
+    .input-section button {
+        width: auto; /* Auto width for buttons */
+    }
+
+    .macro-grid {
+        grid-template-columns: 1.5fr repeat(3, 1fr); /* Name, Total, Goal, Progress */
+        gap: var(--spacing-unit); /* 16px */
+    }
+
+    /* Show headers on desktop */
+    .macro-grid .header {
+        display: block;
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .macro-grid .header:nth-child(4) { text-align: left; } /* Align Progress header left */
+
+    /* Reset macro row layout for desktop */
+    .macro-row {
+        grid-column: span 4; /* Span all 4 columns */
+        display: contents; /* Let children flow into parent grid */
+        border: none;
+        padding: 0;
+    }
+
+    .macro-name {
+       border-bottom: 1px solid var(--border-color);
+       padding: var(--spacing-unit) 0;
+       font-size: 1rem;
+    }
+
+    .macro-total {
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-unit) 0;
+        text-align: right;
+    }
+
+    .macro-goal {
+        display: block; /* Show Goal column */
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-unit) 0;
+        text-align: right;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .progress-cell {
+        grid-column: span 1; /* Progress takes only the last column */
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-unit) 0;
+        margin-top: 0;
+    }
+
+    /* Remove bottom border from last row elements */
+    .macro-grid > div:nth-last-child(-n+4) { /* Selects last 4 grid items */
+         border-bottom: none;
+    }
+
+    .modal-content {
+        margin: 10% auto;
+    }
+} 

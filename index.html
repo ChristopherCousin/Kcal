@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kcal Tracker Proactivo</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header-controls">
+             <h1><span class="emoji">📊</span> Rastreador Diario</h1>
+             <button id="editGoalsButton" class="button button-secondary">🎯 Editar Objetivos</button>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section card">
+            <label for="foodInput">¿Qué has comido hoy?</label>
+            <textarea id="foodInput" rows="3" placeholder="Describe tu comida con detalle (ej: 150g pechuga de pollo plancha, 200g arroz cocido, ensalada mixta con aceite) o simplemente escribe 'un café con leche' o 'manzana'. ¡La IA (simulada) intentará estimarlo!"></textarea>
+            <button id="submitFood" class="button button-primary">Añadir Comida</button>
+            <p class="api-notice">Nota: La estimación de macros es simulada.</p>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="summary-section card">
+            <div class="summary-header">
+                 <h2><span class="emoji">📈</span> Acumulado del Día</h2>
+                 <span id="goalStatus" class="goal-status"></span>
+            </div>
+            <div class="macro-grid">
+                <div class="header">Macro</div>
+                <div class="header">Total</div>
+                <div class="header">Objetivo</div>
+                <div class="header">Progreso</div>
+
+                <!-- Kcal Row -->
+                <div class="macro-row">
+                    <div class="macro-name">Kcal</div>
+                    <div id="kcalTotal" class="macro-total">0</div>
+                    <div id="kcalGoal" class="macro-goal">N/A</div>
+                    <div class="progress-cell">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="kcalProgress" style="width: 0%;"></div>
+                        </div>
+                        <span id="kcalPercent">0%</span>
+                    </div>
+                </div>
+
+                <!-- Proteínas Row -->
+                <div class="macro-row">
+                    <div class="macro-name">Proteínas</div>
+                    <div id="proteinTotal" class="macro-total">0 g</div>
+                    <div id="proteinGoal" class="macro-goal">N/A</div>
+                    <div class="progress-cell">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="proteinProgress" style="width: 0%;"></div>
+                        </div>
+                        <span id="proteinPercent">0%</span>
+                    </div>
+                </div>
+
+                <!-- Carbohidratos Row -->
+                <div class="macro-row">
+                    <div class="macro-name">Carbohidratos</div>
+                    <div id="carbTotal" class="macro-total">0 g</div>
+                    <div id="carbGoal" class="macro-goal">N/A</div>
+                    <div class="progress-cell">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="carbProgress" style="width: 0%;"></div>
+                        </div>
+                        <span id="carbPercent">0%</span>
+                    </div>
+                </div>
+
+                <!-- Grasas Row -->
+                <div class="macro-row">
+                    <div class="macro-name">Grasas</div>
+                    <div id="fatTotal" class="macro-total">0 g</div>
+                    <div id="fatGoal" class="macro-goal">N/A</div>
+                    <div class="progress-cell">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="fatProgress" style="width: 0%;"></div>
+                        </div>
+                        <span id="fatPercent">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <!-- Entries List Section -->
+         <div class="entries-section card">
+            <h2><span class="emoji">🍽️</span> Comidas Registradas Hoy</h2>
+            <ul id="entriesList"></ul>
+         </div>
+
+
+        <!-- AI Comment Section -->
+        <div class="comment-section card">
+             <h2><span class="emoji">💡</span> Consejo Personalizado</h2>
+             <p id="aiCommentText">Define tus objetivos y añade tu primera comida.</p>
+        </div>
+
+    </div>
+
+    <!-- Goal Setting Modal -->
+    <div id="goalModal" class="modal">
+        <div class="modal-content card">
+            <span class="close-button" id="closeGoalModal">&times;</span>
+            <h2>🎯 Establecer Objetivos Diarios</h2>
+            <div class="goal-input-group">
+                 <label for="goalKcal">Calorías (Kcal):</label>
+                 <input type="number" id="goalKcal" placeholder="Ej: 2500">
+            </div>
+             <div class="goal-input-group">
+                 <label for="goalProtein">Proteínas (g):</label>
+                 <input type="number" id="goalProtein" placeholder="Ej: 150">
+            </div>
+             <div class="goal-input-group">
+                 <label for="goalCarb">Carbohidratos (g):</label>
+                 <input type="number" id="goalCarb" placeholder="Ej: 300">
+            </div>
+             <div class="goal-input-group">
+                 <label for="goalFat">Grasas (g):</label>
+                 <input type="number" id="goalFat" placeholder="Ej: 70">
+            </div>
+            <button id="saveGoalsButton" class="button button-primary">Guardar Objetivos</button>
+            <p class="modal-notice">Estos objetivos se guardarán en tu navegador.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
