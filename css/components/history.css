@@ -1,0 +1,141 @@
+/* History Card Styles */
+.history-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: var(--spacing-md);
+    padding-right: var(--spacing-sm); /* For scrollbar */
+}
+
+.history-item {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--divider-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-details span {
+    color: var(--text-secondary);
+}
+
+.history-details strong {
+    color: var(--primary-light);
+}
+
+.no-history {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: var(--spacing-md) 0;
+}
+
+/* Add Food Button */
+.add-food-btn-container {
+    text-align: center;
+    margin: var(--spacing-md) 0;
+}
+
+.button-large {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1.1rem;
+}
+
+.button-large .material-symbols-rounded {
+    font-size: 1.3rem;
+    margin-right: var(--spacing-sm);
+    vertical-align: middle;
+}
+
+/* Entries List (Food Tracking) */
+.entries-list {
+    list-style: none;
+    margin: var(--spacing-md) 0;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.entries-list li {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--divider-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.entries-list li:last-child {
+    border-bottom: none;
+}
+
+.entry-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.entry-description {
+    font-weight: 500;
+}
+
+.entry-macros {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 2px;
+}
+
+.entry-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.delete-entry-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.delete-entry-btn:hover {
+    color: var(--danger-color);
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.no-entries {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: var(--spacing-md) 0;
+}
+
+/* Goal Indicator */
+.goal-indicator {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.goal-status {
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: var(--input-background);
+    font-size: 0.8rem;
+    margin-right: var(--spacing-xs);
+}
+
+.goal-status.deficit {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.goal-status.surplus {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+} 

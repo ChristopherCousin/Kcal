@@ -1,0 +1,335 @@
+/* Form Styles */
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Select Wrapper for custom arrow */
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: var(--spacing-xl);
+}
+
+.select-wrapper::after {
+    content: '\25BC'; /* Down arrow */
+    position: absolute;
+    top: 50%;
+    right: var(--spacing-md);
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* Common meals grid */
+.common-meals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.common-meal-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.common-meal-item:hover {
+    background-color: rgba(41, 182, 246, 0.1);
+    border-color: var(--primary-color);
+}
+
+.common-meal-icon {
+    font-size: 1.8rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.common-meal-name {
+    font-size: 0.9rem;
+}
+
+.custom-meal-option {
+    margin-top: var(--spacing-md);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--divider-color);
+    margin-bottom: var(--spacing-md);
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+    padding: var(--spacing-sm) 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Food Upload Zone */
+.upload-zone {
+    border: 2px dashed var(--divider-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.upload-zone:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(41, 182, 246, 0.05);
+}
+
+.upload-zone .material-symbols-rounded {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-secondary);
+}
+
+.photo-preview {
+    display: flex;
+    flex-direction: column;
+}
+
+.photo-preview img {
+    width: 100%;
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-md);
+    object-fit: cover;
+    max-height: 300px;
+}
+
+.photo-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+}
+
+/* Quantity Selector */
+.quantity-selector {
+    margin: var(--spacing-md) 0;
+}
+
+.quantity-input-group {
+    display: flex;
+    align-items: center;
+    margin-top: var(--spacing-sm);
+}
+
+.quantity-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--input-border);
+    background-color: var(--input-background);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.quantity-btn:first-child {
+    border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+}
+
+.quantity-btn:last-child {
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+#foodQuantity {
+    width: 80px;
+    text-align: center;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+}
+
+/* Search results */
+.search-results {
+    margin-top: var(--spacing-md);
+}
+
+.search-result-item {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--divider-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-result-item:hover {
+    background-color: rgba(41, 182, 246, 0.05);
+}
+
+.search-result-name {
+    font-weight: 500;
+}
+
+.search-result-brand {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.search-no-results, .search-loading {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Portion selector */
+.portion-area {
+    margin: var(--spacing-md) 0;
+}
+
+.portion-area label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.portion-selector {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.portion-btn {
+    flex: 1;
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.portion-btn.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.portion-btn:hover:not(.active) {
+    background-color: rgba(41, 182, 246, 0.1);
+    border-color: var(--primary-color);
+}
+
+/* Quick Add Form */
+.quick-add-form {
+    padding: var(--spacing-md);
+}
+
+.quick-add-form .form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.quick-add-form label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.quick-add-form input[type="text"] {
+    width: 100%;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--input-border);
+    background-color: var(--input-background);
+    color: var(--text-color);
+    font-size: 1rem;
+} 

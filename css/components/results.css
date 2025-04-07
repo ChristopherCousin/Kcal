@@ -1,0 +1,141 @@
+/* Results Card Styles */
+.result-section {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--divider-color);
+}
+
+.result-section:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.result-section h3 {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.result-section p {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.result-section span {
+    font-weight: 600;
+    color: var(--primary-light);
+}
+
+.macros-section {
+    margin-top: var(--spacing-lg);
+}
+
+.macros-section h3 {
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.macro-bars {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-md);
+}
+
+.macro-bar-container {
+    height: 100%;
+}
+
+.macro-bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.macro-bar.protein {
+    background-color: var(--protein-color);
+}
+
+.macro-bar.carbs {
+    background-color: var(--carbs-color);
+}
+
+.macro-bar.fat {
+    background-color: var(--fat-color);
+}
+
+.macro-details {
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9rem;
+}
+
+.macro-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.macro-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.macro-color.protein { background-color: var(--protein-color); }
+.macro-color.carbs { background-color: var(--carbs-color); }
+.macro-color.fat { background-color: var(--fat-color); }
+
+.macro-item span span {
+    color: var(--text-color); /* Reset color for grams/percentage */
+    font-weight: normal;
+}
+
+/* Nutrition summary for AI analysis */
+.nutrition-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--spacing-md);
+    text-align: center;
+}
+
+.nutrition-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.nutrition-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-light);
+}
+
+.nutrition-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+#detectedFoodsList {
+    margin: var(--spacing-md) 0;
+    padding-left: var(--spacing-lg);
+}
+
+#detectedFoodsList li {
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    justify-content: space-between;
+}
+
+.confidence-score {
+    color: var(--primary-light);
+    font-size: 0.85rem;
+} 

@@ -1,136 +1,701 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kcal Tracker Proactivo</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Kcal - Calculadora de calorías</title>
+    <link rel="stylesheet" href="css/main.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <div class="header-controls">
-             <h1><span class="emoji">📊</span> Rastreador Diario</h1>
-             <button id="editGoalsButton" class="button button-secondary">🎯 Editar Objetivos</button>
-        </div>
+    <!-- Código para prevenir duplicación de elementos y resolver problemas de renderizado -->
+    <div id="duplicate-prevention" style="display:none;"></div>
+    <script>
+    (function() {
+        // 1. Código para limpiar cualquier elemento fantasma en el DOM
+        if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length) {
+                        mutation.addedNodes.forEach(function(node) {
+                            // Comprobar nodos de texto sueltos
+                            if (node.nodeType === 3 && node.parentNode === document.body) {
+                                const text = node.textContent.trim();
+                                if (text === 'Configurar Objetivos' || text.includes('✕') || text === '×') {
+                                    node.parentNode.removeChild(node);
+                                }
+                            }
+                            
+                            // Comprobar elementos no deseados fuera de la estructura
+                            if (node.nodeType === 1 && node.parentNode === document.body) {
+                                // Si es un elemento h2 o button fuera de estructura
+                                if ((node.tagName === 'H2' || node.tagName === 'BUTTON') && 
+                                    !node.id && 
+                                    !node.closest('.modal') && 
+                                    !node.closest('.card') && 
+                                    !node.closest('.header-actions')) {
+                                    
+                                    console.log('Eliminando elemento fuera de estructura:', node);
+                                    node.parentNode.removeChild(node);
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // Observar cambios en el body
+            observer.observe(document.body, { 
+                childList: true, 
+                subtree: true, 
+                attributes: false, 
+                characterData: true 
+            });
+        }
+        
+        // 2. Asegurar que solo un formulario esté visible a la vez
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para manejar el estado visual de la aplicación
+            window.updateAppVisualState = function(state) {
+                const calculatorCard = document.getElementById('calculator-card');
+                const resultsCard = document.getElementById('results-card');
+                const historyCard = document.getElementById('history-card');
+                const trackingPanel = document.getElementById('tracking-panel');
+                const foodTabs = document.getElementById('food-tabs');
+                const goalModal = document.getElementById('goalModal');
+                
+                // Ocultar todo primero
+                if (calculatorCard) calculatorCard.style.display = 'none';
+                if (resultsCard) resultsCard.style.display = 'none';
+                if (historyCard) historyCard.style.display = 'none';
+                if (trackingPanel) trackingPanel.style.display = 'none';
+                if (foodTabs) foodTabs.style.display = 'none';
+                if (goalModal) goalModal.style.display = 'none';
+                
+                // Mostrar solo lo necesario según el estado
+                switch(state) {
+                    case 'calculator':
+                        if (calculatorCard) calculatorCard.style.display = 'block';
+                        break;
+                    case 'results':
+                        if (resultsCard) resultsCard.style.display = 'block';
+                        break;
+                    case 'tracking':
+                        if (calculatorCard) calculatorCard.style.display = 'none';
+                        if (resultsCard) resultsCard.style.display = 'none';
+                        if (historyCard) historyCard.style.display = 'block';
+                        if (trackingPanel) trackingPanel.style.display = 'block';
+                        if (foodTabs) foodTabs.style.display = 'block';
+                        break;
+                    case 'goals':
+                        if (goalModal) goalModal.style.display = 'block';
+                        break;
+                    default:
+                        if (calculatorCard) calculatorCard.style.display = 'block';
+                }
+            };
+            
+            // Inicializar con la calculadora visible
+            window.updateAppVisualState('calculator');
+        });
+    })();
+    </script>
 
-        <!-- Input Section -->
-        <div class="input-section card">
-            <label for="foodInput">¿Qué has comido hoy?</label>
-            <textarea id="foodInput" rows="3" placeholder="Describe tu comida con detalle (ej: 150g pechuga de pollo plancha, 200g arroz cocido, ensalada mixta con aceite) o simplemente escribe 'un café con leche' o 'manzana'. ¡La IA (simulada) intentará estimarlo!"></textarea>
-            <button id="submitFood" class="button button-primary">Añadir Comida</button>
-            <p class="api-notice">Nota: La estimación de macros es simulada.</p>
-        </div>
-
-        <!-- Summary Section -->
-        <div class="summary-section card">
-            <div class="summary-header">
-                 <h2><span class="emoji">📈</span> Acumulado del Día</h2>
-                 <span id="goalStatus" class="goal-status"></span>
+    <header class="app-header">
+        <div class="container header-container">
+            <h1>Kcal</h1>
+            <div class="header-actions">
+                <button id="editGoalsButton" class="button button-secondary button-small">Editar objetivos</button>
+                <div id="theme-toggle" class="button button-icon button-tertiary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </div>
             </div>
-            <div class="macro-grid">
-                <div class="header">Macro</div>
-                <div class="header">Total</div>
-                <div class="header">Objetivo</div>
-                <div class="header">Progreso</div>
+        </div>
+    </header>
 
-                <!-- Kcal Row -->
-                <div class="macro-row">
-                    <div class="macro-name">Kcal</div>
-                    <div id="kcalTotal" class="macro-total">0</div>
-                    <div id="kcalGoal" class="macro-goal">N/A</div>
-                    <div class="progress-cell">
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" id="kcalProgress" style="width: 0%;"></div>
+    <main class="main-container">
+        <div class="container">
+            <!-- Formulario de cálculo de calorías -->
+            <div class="card" id="calculator-card">
+                <h2>Calcular Requerimiento Calórico</h2>
+                <form id="calculator-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="gender">Género</label>
+                        <div class="select-wrapper">
+                            <select id="gender" name="gender" required>
+                                <option value="male">Masculino</option>
+                                <option value="female">Femenino</option>
+                            </select>
                         </div>
-                        <span id="kcalPercent">0%</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="age">Edad</label>
+                        <input type="number" id="age" name="age" min="18" max="100" placeholder="Años" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="weight">Peso</label>
+                            <input type="number" id="weight" name="weight" min="40" max="200" step="0.1" placeholder="kg" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="height">Altura</label>
+                            <input type="number" id="height" name="height" min="140" max="220" placeholder="cm" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="activity">Nivel de Actividad</label>
+                        <div class="select-wrapper">
+                            <select id="activity" name="activity" required>
+                                <option value="1.2">Sedentario (poco o nada de ejercicio)</option>
+                                <option value="1.375">Ligero (ejercicio 1-3 días/semana)</option>
+                                <option value="1.55">Moderado (ejercicio 3-5 días/semana)</option>
+                                <option value="1.725">Activo (ejercicio 6-7 días/semana)</option>
+                                <option value="1.9">Muy activo (ejercicio muy intenso)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="goal">Objetivo</label>
+                        <div class="select-wrapper">
+                            <select id="goal" name="goal" required>
+                                <option value="maintain">Mantener peso</option>
+                                <option value="lose">Perder peso</option>
+                                <option value="gain">Ganar peso</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="calculate-button" class="button button-primary button-block">Calcular</button>
+                </form>
+            </div>
+
+            <!-- Resultados -->
+            <div class="card" id="results-card" style="display: none;">
+                <h2>Tus Resultados</h2>
+                
+                <div class="result-section">
+                    <h3>Metabolismo Basal (TMB)</h3>
+                    <p>Tu cuerpo quema <span id="bmr-value">0</span> calorías en reposo</p>
+                </div>
+                
+                <div class="result-section">
+                    <h3>Mantenimiento</h3>
+                    <p>Para mantener tu peso necesitas <span id="maintenance-value">0</span> calorías</p>
+                </div>
+                
+                <div id="goal-result" class="result-section">
+                    <h3>Para tu objetivo</h3>
+                    <p>Deberías consumir <span id="goal-value">0</span> calorías diarias</p>
+                </div>
+                
+                <div class="macros-section">
+                    <h3>Distribución de Macronutrientes</h3>
+                    <div class="macro-bars">
+                        <div class="macro-bar-container">
+                            <div id="protein-bar" class="macro-bar protein" style="width: 30%;">30%</div>
+                        </div>
+                        <div class="macro-bar-container">
+                            <div id="carbs-bar" class="macro-bar carbs" style="width: 40%;">40%</div>
+                        </div>
+                        <div class="macro-bar-container">
+                            <div id="fat-bar" class="macro-bar fat" style="width: 30%;">30%</div>
+                        </div>
+                    </div>
+                    <div class="macro-details">
+                        <div class="macro-item">
+                            <div class="macro-color protein"></div>
+                            <span>Proteínas: <span id="protein-grams">0</span>g (<span id="protein-percent">30</span>%)</span>
+                        </div>
+                        <div class="macro-item">
+                            <div class="macro-color carbs"></div>
+                            <span>Carbohidratos: <span id="carbs-grams">0</span>g (<span id="carbs-percent">40</span>%)</span>
+                        </div>
+                        <div class="macro-item">
+                            <div class="macro-color fat"></div>
+                            <span>Grasas: <span id="fat-grams">0</span>g (<span id="fat-percent">30</span>%)</span>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Proteínas Row -->
-                <div class="macro-row">
-                    <div class="macro-name">Proteínas</div>
-                    <div id="proteinTotal" class="macro-total">0 g</div>
-                    <div id="proteinGoal" class="macro-goal">N/A</div>
-                    <div class="progress-cell">
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" id="proteinProgress" style="width: 0%;"></div>
-                        </div>
-                        <span id="proteinPercent">0%</span>
+                
+                <div class="button-row">
+                    <button id="recalculate-button" class="button button-secondary">Recalcular</button>
+                    <button id="save-button" class="button button-primary">Guardar Resultados</button>
+                </div>
+            </div>
+            
+            <!-- Historial de cálculos -->
+            <div class="card" id="history-card" style="display: none;">
+                <div class="card-header">
+                    <h2>Historial de Cálculos</h2>
+                    <button id="clear-history-button" class="button button-danger button-small">Borrar historial</button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <!-- Aquí se agregarán los elementos del historial -->
+                </div>
+            </div>
+            
+            <!-- Panel de seguimiento de alimentos -->
+            <div class="card" id="tracking-panel" style="display: none;">
+                <div class="card-header">
+                    <h2>Tu Nutrición Diaria</h2>
+                    <div class="goal-indicator">
+                        <span id="goalStatus">Sin objetivos</span>
+                        <span id="kcalTotal">0</span> / <span id="kcalGoal">--</span> kcal
                     </div>
                 </div>
-
-                <!-- Carbohidratos Row -->
-                <div class="macro-row">
-                    <div class="macro-name">Carbohidratos</div>
-                    <div id="carbTotal" class="macro-total">0 g</div>
-                    <div id="carbGoal" class="macro-goal">N/A</div>
-                    <div class="progress-cell">
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" id="carbProgress" style="width: 0%;"></div>
-                        </div>
-                        <span id="carbPercent">0%</span>
+                
+                <div class="add-food-btn-container">
+                    <button id="add-food-button" class="button button-primary button-large">
+                        <span class="material-symbols-rounded">add</span>
+                        Añadir alimento
+                    </button>
+                </div>
+                
+                <div class="macro-rings">
+                    <div class="ring-container">
+                        <svg class="progress-ring" viewBox="0 0 120 120">
+                            <circle class="progress-ring-circle-bg" cx="60" cy="60" r="54"></circle>
+                            <circle id="kcalRing" class="progress-ring-circle" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                            <text x="60" y="60" text-anchor="middle" dominant-baseline="middle" class="ring-text">Kcal</text>
+                        </svg>
+                    </div>
+                    <div class="ring-container">
+                        <svg class="progress-ring" viewBox="0 0 120 120">
+                            <circle class="progress-ring-circle-bg" cx="60" cy="60" r="54"></circle>
+                            <circle id="proteinRing" class="progress-ring-circle protein" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                            <text x="60" y="53" text-anchor="middle" dominant-baseline="middle" class="ring-text">P</text>
+                            <text x="60" y="70" text-anchor="middle" dominant-baseline="middle" class="ring-value"><span id="proteinTotal">0</span>g</text>
+                        </svg>
+                    </div>
+                    <div class="ring-container">
+                        <svg class="progress-ring" viewBox="0 0 120 120">
+                            <circle class="progress-ring-circle-bg" cx="60" cy="60" r="54"></circle>
+                            <circle id="carbRing" class="progress-ring-circle carbs" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                            <text x="60" y="53" text-anchor="middle" dominant-baseline="middle" class="ring-text">C</text>
+                            <text x="60" y="70" text-anchor="middle" dominant-baseline="middle" class="ring-value"><span id="carbTotal">0</span>g</text>
+                        </svg>
+                    </div>
+                    <div class="ring-container">
+                        <svg class="progress-ring" viewBox="0 0 120 120">
+                            <circle class="progress-ring-circle-bg" cx="60" cy="60" r="54"></circle>
+                            <circle id="fatRing" class="progress-ring-circle fat" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                            <text x="60" y="53" text-anchor="middle" dominant-baseline="middle" class="ring-text">G</text>
+                            <text x="60" y="70" text-anchor="middle" dominant-baseline="middle" class="ring-value"><span id="fatTotal">0</span>g</text>
+                        </svg>
                     </div>
                 </div>
-
-                <!-- Grasas Row -->
-                <div class="macro-row">
-                    <div class="macro-name">Grasas</div>
-                    <div id="fatTotal" class="macro-total">0 g</div>
-                    <div id="fatGoal" class="macro-goal">N/A</div>
-                    <div class="progress-cell">
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" id="fatProgress" style="width: 0%;"></div>
+                
+                <div class="ai-comment">
+                    <span id="aiCommentText">Define tus objetivos diarios para recibir consejos personalizados.</span>
+                </div>
+                
+                <div class="entries-container">
+                    <h3>Alimentos del día</h3>
+                    <ul id="entriesList" class="entries-list">
+                        <li class="no-entries">No has añadido ninguna comida hoy.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Pestañas para añadir alimentos -->
+            <div class="card" id="food-tabs" style="display: none;">
+                <div class="card-header">
+                    <h2>Añadir alimento</h2>
+                    <button id="close-food-tabs" class="button button-icon button-tertiary">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="quick">Rápido</button>
+                    <button class="tab-button" data-tab="search">Buscar</button>
+                    <button class="tab-button" data-tab="photo">Foto</button>
+                </div>
+                
+                <!-- Tab de añadir rápido -->
+                <div id="quick" class="tab-content active">
+                    <div class="quick-add-form">
+                        <div class="form-group">
+                            <label for="quickFoodInput">¿Qué has comido?</label>
+                            <input type="text" id="quickFoodInput" placeholder="Ejemplo: manzana, pollo asado, yogur..." autofocus>
                         </div>
-                        <span id="fatPercent">0%</span>
+                        
+                        <div class="portion-area">
+                            <label>¿Qué cantidad?</label>
+                            <div class="portion-selector">
+                                <button class="portion-btn" data-size="small">Pequeña</button>
+                                <button class="portion-btn active" data-size="normal">Media</button>
+                                <button class="portion-btn" data-size="large">Grande</button>
+                            </div>
+                        </div>
+                        
+                        <button id="addQuickFood" class="button button-primary button-block">Añadir a mi diario</button>
+                    </div>
+                </div>
+                
+                <!-- Tab de búsqueda -->
+                <div id="search" class="tab-content">
+                    <div class="search-container">
+                        <div class="form-group">
+                            <label for="foodSearchInput">Busca alimentos en nuestra base de datos</label>
+                            <input type="text" id="foodSearchInput" placeholder="Escribe para buscar...">
+                        </div>
+                        <div id="searchResults" class="search-results"></div>
+                        <div id="searchDetails" class="search-details hidden">
+                            <button id="backToSearch" class="button button-tertiary button-small">
+                                <span class="material-symbols-rounded">arrow_back</span> Volver
+                            </button>
+                            <h3 id="selectedFoodName">Alimento</h3>
+                            
+                            <div class="quantity-selector">
+                                <label for="foodQuantity">Cantidad (g)</label>
+                                <div class="quantity-input-group">
+                                    <button class="quantity-btn" data-action="decrease">-</button>
+                                    <input type="number" id="foodQuantity" value="100" min="10" step="10">
+                                    <button class="quantity-btn" data-action="increase">+</button>
+                                </div>
+                            </div>
+                            
+                            <div class="nutrition-preview">
+                                <div class="nutrition-item">
+                                    <span class="nutrition-value" id="previewKcal">0</span>
+                                    <span class="nutrition-label">kcal</span>
+                                </div>
+                                <div class="nutrition-item">
+                                    <span class="nutrition-value" id="previewProtein">0g</span>
+                                    <span class="nutrition-label">Proteínas</span>
+                                </div>
+                                <div class="nutrition-item">
+                                    <span class="nutrition-value" id="previewCarb">0g</span>
+                                    <span class="nutrition-label">Carbos</span>
+                                </div>
+                                <div class="nutrition-item">
+                                    <span class="nutrition-value" id="previewFat">0g</span>
+                                    <span class="nutrition-label">Grasas</span>
+                                </div>
+                            </div>
+                            
+                            <button id="addSearchedFood" class="button button-primary button-block">Añadir a mi diario</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tab de foto -->
+                <div id="photo" class="tab-content">
+                    <div id="uploadZone" class="upload-zone">
+                        <span class="material-symbols-rounded">photo_camera</span>
+                        <p>Haz clic o arrastra una foto de tu comida</p>
+                        <input type="file" id="foodPhotoInput" accept="image/*" hidden>
+                    </div>
+                    
+                    <div id="photoPreview" class="photo-preview" style="display: none;">
+                        <img id="previewImage" src="" alt="Previsualización de comida">
+                        <div class="photo-actions">
+                            <button id="retakePhoto" class="button button-secondary">Cambiar foto</button>
+                            <button id="analyzePhoto" class="button button-primary">Analizar</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
 
-         <!-- Entries List Section -->
-         <div class="entries-section card">
-            <h2><span class="emoji">🍽️</span> Comidas Registradas Hoy</h2>
-            <ul id="entriesList"></ul>
-         </div>
-
-
-        <!-- AI Comment Section -->
-        <div class="comment-section card">
-             <h2><span class="emoji">💡</span> Consejo Personalizado</h2>
-             <p id="aiCommentText">Define tus objetivos y añade tu primera comida.</p>
+    <!-- Módulos JS -->
+    <script type="module" src="js/main.js"></script>
+    
+    <!-- Modal de objetivos -->
+    <div id="goalModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configurar Objetivos</h2>
+                <button id="closeGoalModal" class="button button-icon button-tertiary">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h3>Datos personales</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userAge">Edad</label>
+                        <input type="number" id="userAge" placeholder="Años" min="15" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="userSex">Sexo</label>
+                        <div class="select-wrapper">
+                            <select id="userSex">
+                                <option value="male">Masculino</option>
+                                <option value="female">Femenino</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userWeight">Peso</label>
+                        <input type="number" id="userWeight" placeholder="kg" min="30" max="300" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="userHeight">Altura</label>
+                        <input type="number" id="userHeight" placeholder="cm" min="100" max="250">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="userActivityLevel">Nivel de actividad</label>
+                    <div class="select-wrapper">
+                        <select id="userActivityLevel">
+                            <option value="1.2">Sedentario (poco o nada de ejercicio)</option>
+                            <option value="1.375">Ligero (ejercicio 1-3 días/semana)</option>
+                            <option value="1.55">Moderado (ejercicio 3-5 días/semana)</option>
+                            <option value="1.725">Activo (ejercicio 6-7 días/semana)</option>
+                            <option value="1.9">Muy activo (ejercicio muy intenso)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="userGoal">Objetivo</label>
+                    <div class="select-wrapper">
+                        <select id="userGoal">
+                            <option value="0">Mantener peso</option>
+                            <option value="-500">Pérdida moderada (-0.5kg/semana)</option>
+                            <option value="-300">Pérdida suave (-0.3kg/semana)</option>
+                            <option value="300">Ganancia suave (+0.3kg/semana)</option>
+                            <option value="500">Ganancia moderada (+0.5kg/semana)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <h3>Objetivos de macronutrientes</h3>
+                
+                <div class="form-group">
+                    <label for="goalKcal">Calorías diarias</label>
+                    <input type="number" id="goalKcal" placeholder="kcal" min="1000" max="5000">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="goalProtein">Proteínas (g)</label>
+                        <input type="number" id="goalProtein" placeholder="g" min="30" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="goalCarb">Carbohidratos (g)</label>
+                        <input type="number" id="goalCarb" placeholder="g" min="30" max="600">
+                    </div>
+                    <div class="form-group">
+                        <label for="goalFat">Grasas (g)</label>
+                        <input type="number" id="goalFat" placeholder="g" min="20" max="200">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="calculateGoalsButton" class="button button-secondary">Calcular objetivos</button>
+                <button id="saveGoalsButton" class="button button-primary">Guardar objetivos</button>
+            </div>
         </div>
-
+    </div>
+    
+    <!-- Modal de análisis con IA -->
+    <div id="aiAnalysisModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Análisis de Comida</h2>
+                <button id="closeAnalysisModal" class="button button-icon button-tertiary">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="aiLoadingIndicator" class="modal-loading">
+                    <div class="modal-loading-spinner"></div>
+                    <p>Analizando tu comida con IA...</p>
+                    <small>Esto puede tardar unos segundos</small>
+                </div>
+                
+                <div id="aiResultContent" style="display: none;">
+                    <h3>Alimentos detectados</h3>
+                    <ul id="detectedFoodsList">
+                        <!-- Los alimentos detectados se mostrarán aquí -->
+                    </ul>
+                    
+                    <div class="result-section">
+                        <h3>Nutrición estimada</h3>
+                        <div class="nutrition-summary">
+                            <div class="nutrition-item">
+                                <span class="nutrition-value" id="aiKcal">0</span>
+                                <span class="nutrition-label">kcal</span>
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-value" id="aiProtein">0g</span>
+                                <span class="nutrition-label">Proteínas</span>
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-value" id="aiCarb">0g</span>
+                                <span class="nutrition-label">Carbos</span>
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-value" id="aiFat">0g</span>
+                                <span class="nutrition-label">Grasas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="adjustAiButton" class="button button-secondary">Ajustar</button>
+                <button id="confirmAiButton" class="button button-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de opciones de comida -->
+    <div id="mealOptionsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="mealTypeHeader">Elige tu comida</h2>
+                <button id="closeMealModal" class="button button-icon button-tertiary">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="commonMealsGrid" class="common-meals-grid">
+                    <!-- Las opciones de comida se mostrarán aquí -->
+                </div>
+                
+                <div class="custom-meal-option">
+                    <button id="customMealButton" class="button button-secondary button-block">
+                        <span class="material-symbols-rounded">add</span>
+                        Crear entrada personalizada
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Goal Setting Modal -->
-    <div id="goalModal" class="modal">
-        <div class="modal-content card">
-            <span class="close-button" id="closeGoalModal">&times;</span>
-            <h2>🎯 Establecer Objetivos Diarios</h2>
-            <div class="goal-input-group">
-                 <label for="goalKcal">Calorías (Kcal):</label>
-                 <input type="number" id="goalKcal" placeholder="Ej: 2500">
-            </div>
-             <div class="goal-input-group">
-                 <label for="goalProtein">Proteínas (g):</label>
-                 <input type="number" id="goalProtein" placeholder="Ej: 150">
-            </div>
-             <div class="goal-input-group">
-                 <label for="goalCarb">Carbohidratos (g):</label>
-                 <input type="number" id="goalCarb" placeholder="Ej: 300">
-            </div>
-             <div class="goal-input-group">
-                 <label for="goalFat">Grasas (g):</label>
-                 <input type="number" id="goalFat" placeholder="Ej: 70">
-            </div>
-            <button id="saveGoalsButton" class="button button-primary">Guardar Objetivos</button>
-            <p class="modal-notice">Estos objetivos se guardarán en tu navegador.</p>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <!-- Script de depuración y corrección -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Verificando elementos críticos:');
+        
+        // Verificar formulario y botones
+        const formulario = document.getElementById('calculator-form');
+        const botonCalcular = document.getElementById('calculate-button');
+        const cardResultados = document.getElementById('results-card');
+        
+        console.log('Formulario:', formulario);
+        console.log('Botón calcular:', botonCalcular);
+        console.log('Tarjeta de resultados:', cardResultados);
+        
+        // Verificar modal y su contenido
+        const modalObjetivos = document.getElementById('goalModal');
+        const modalContent = modalObjetivos.querySelector('.modal-content');
+        
+        console.log('Modal de objetivos:', modalObjetivos);
+        console.log('Contenido del modal:', modalContent);
+        
+        // Buscar y eliminar textos sueltos "Configurar Objetivos"
+        // Primera forma: usando XPath
+        const textosSueltos = document.evaluate(
+            "//text()[normalize-space(.) = 'Configurar Objetivos' and not(ancestor::div[@id='goalModal'])]",
+            document,
+            null,
+            XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+            null
+        );
+        
+        console.log('Textos sueltos encontrados con XPath:', textosSueltos.snapshotLength);
+        for (let i = 0; i < textosSueltos.snapshotLength; i++) {
+            const nodo = textosSueltos.snapshotItem(i);
+            console.log('Eliminando texto suelto:', nodo);
+            if (nodo.parentNode) {
+                nodo.parentNode.removeChild(nodo);
+            }
+        }
+        
+        // Segunda forma: usando recorrido DOM
+        const body = document.body;
+        const nodes = [];
+        
+        function findTextNodes(node) {
+            if (node.nodeType === 3) { // Nodo de texto
+                const text = node.textContent.trim();
+                if (text === 'Configurar Objetivos' || text.includes('✕')) {
+                    nodes.push(node);
+                }
+            } else if (node.nodeType === 1) { // Elemento
+                // No buscar dentro de los modales
+                if (!node.classList || !node.classList.contains('modal')) {
+                    for (let i = 0; i < node.childNodes.length; i++) {
+                        findTextNodes(node.childNodes[i]);
+                    }
+                }
+            }
+        }
+        
+        findTextNodes(body);
+        console.log('Textos sueltos encontrados con DOM:', nodes.length);
+        
+        // Eliminar los nodos de texto encontrados
+        nodes.forEach(node => {
+            console.log('Eliminando nodo:', node);
+            if (node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+        });
+        
+        // Detectar elementos huérfanos o incorrectos
+        const elementosConfigObjetivos = document.querySelectorAll('h2, button');
+        elementosConfigObjetivos.forEach(elem => {
+            if (elem.textContent.includes('Configurar Objetivos') && 
+                !elem.closest('#goalModal')) {
+                console.log('Elemento incorrecto encontrado:', elem);
+                elem.style.display = 'none';
+            }
+        });
+    });
+    </script>
+    
+    <!-- Estilos para corregir el problema -->
+    <style>
+    /* Asegurar que el contenido del modal esté siempre dentro del modal */
+    .modal-content {
+        position: relative !important;
+        margin: 10vh auto !important;
+        transform: none !important;
+        left: auto !important;
+        bottom: auto !important;
+        overflow: hidden;
+    }
+    
+    /* Ocultar cualquier elemento de texto fuera del modal */
+    body > h2, 
+    body > button {
+        display: none !important;
+    }
+    
+    /* Arreglar el posicionamiento del texto "Configurar Objetivos" */
+    h2:not([id]):not([class]):empty, 
+    button:not([id]):not([class]):empty {
+        display: none !important;
+    }
+    </style>
 </body>
 </html> 

@@ -1,0 +1,121 @@
+/* Progress Rings */
+.macro-rings {
+    display: flex;
+    justify-content: space-around;
+    margin: var(--spacing-lg) 0;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.ring-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: var(--spacing-sm);
+    transition: transform 0.3s ease;
+}
+
+.ring-container:hover {
+    transform: scale(1.05);
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-ring-circle-bg {
+    fill: none;
+    stroke: var(--progress-background);
+    stroke-width: 8;
+}
+
+.progress-ring-circle {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 8;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.8s ease;
+}
+
+.progress-ring-circle.protein {
+    stroke: var(--protein-color);
+}
+
+.progress-ring-circle.carbs {
+    stroke: var(--carbs-color);
+}
+
+.progress-ring-circle.fat {
+    stroke: var(--fat-color);
+}
+
+.ring-text {
+    fill: var(--text-secondary);
+    font-size: 16px;
+    font-weight: 600;
+    transform: rotate(90deg);
+}
+
+.ring-value {
+    fill: var(--text-color);
+    font-size: 14px;
+    font-weight: 500;
+    transform: rotate(90deg);
+}
+
+/* AI Comment */
+.ai-comment {
+    background-color: var(--input-background);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Meal Buttons */
+.meal-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+}
+
+.meal-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-sm);
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.meal-option:hover {
+    background-color: rgba(41, 182, 246, 0.1);
+    border-color: var(--primary-color);
+}
+
+.meal-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+@media (max-width: 600px) {
+    .meal-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .macro-rings {
+        flex-wrap: wrap;
+    }
+    
+    .ring-container {
+        width: calc(50% - var(--spacing-sm));
+        margin-bottom: var(--spacing-md);
+    }
+} 
