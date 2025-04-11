@@ -1,9 +1,66 @@
 /* Cards */
 .card {
     background-color: var(--card-background);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
     box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-lg);
+    border: var(--card-border);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: var(--card-hover-transform);
+}
+
+/* Estilos para las tarjetas con gradiente */
+.card.gradient-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.02) 0%, rgba(14, 165, 233, 0.12) 100%);
+}
+
+/* Efecto decorativo para las tarjetas */
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--carbs-color));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* Estilos para tarjetas principales */
+#calculator-card, #results-card, #tracking-panel {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilos para tarjetas premium */
+.card.premium-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.card.premium-card::before {
+    background: linear-gradient(90deg, var(--primary-color), var(--protein-color));
+    opacity: 1;
 } 

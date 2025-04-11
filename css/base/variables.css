@@ -1,43 +1,86 @@
 :root {
-    --background-color: #121212;
-    --card-background: #1e1e1e;
-    --text-color: #f0f0f0;
-    --text-secondary: #b0b0b0;
-    --text-muted: #808080;
+    /* Main colors - Modernizado */
+    --primary-color: #2563eb;
+    --primary-color-rgb: 37, 99, 235;
+    --primary-dark: #1d4ed8;
+    --accent-color: #f97316;
+    --accent-light: rgba(249, 115, 22, 0.15);
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
     
-    --primary-color: #29b6f6;
-    --primary-light: #4fc4f8;
-    --primary-dark: #0288d1;
-    --accent-color: #8c9eff;
+    /* Fitness theme colors - Modernizado */
+    --fitness-gradient-start: #2563eb;
+    --fitness-gradient-end: #0f766e;
+    --energy-color: #f97316;
+    --muscle-color: #84cc16;
+    --cardio-color: #ef4444;
     
-    --success-color: #2ecc71;
-    --warning-color: #f39c12;
-    --danger-color: #e74c3c;
+    /* Text colors */
+    --text-color: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-on-primary: white;
     
-    --border-color: #333;
-    --divider-color: #2a2a2a;
-    --input-background: #252525;
-    --input-border: #333;
-    --input-focus-shadow: rgba(41, 182, 246, 0.25);
+    /* Background colors */
+    --background-color: #f8fafc;
+    --card-background: white;
+    --input-background: #f1f5f9;
+    --hover-background: #f8fafc;
+    --input-border: #cbd5e1;
+    --progress-background: #e2e8f0;
     
-    --progress-background: #2a2a2a;
-    --protein-color: #ff7066;
-    --carbs-color: #ffca63;
-    --fat-color: #4dac6d;
+    /* Macros colors - Modernizado */
+    --protein-color: #8b5cf6;
+    --protein-color-rgb: 139, 92, 246;
+    --carbs-color: #0ea5e9;
+    --carbs-color-rgb: 14, 165, 233;
+    --fat-color: #f43f5e;
+    --fat-color-rgb: 244, 63, 94;
     
-    --modal-backdrop: rgba(0, 0, 0, 0.7);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+    /* Goal status colors */
+    --deficit-color: #f43f5e;
+    --maintenance-color: #0ea5e9;
+    --surplus-color: #8b5cf6;
     
-    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --border-radius-sm: 6px;
-    --border-radius: 10px;
-    --border-radius-lg: 16px;
+    /* Spacing */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
     --spacing-lg: 24px;
     --spacing-xl: 32px;
-    --header-height: 60px;
+    
+    /* Border radius */
+    --border-radius-sm: 6px;
+    --border-radius: 10px;
+    --border-radius-lg: 14px;
+    --border-radius-xl: 20px;
+    --border-radius-full: 9999px;
+    
+    /* Shadows - Mejorados */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Animation durations */
+    --animation-fast: 0.15s;
+    --animation-normal: 0.3s;
+    --animation-slow: 0.5s;
+    
+    --border-color: #e2e8f0;
+    --divider-color: #e2e8f0;
+    --input-focus-shadow: rgba(37, 99, 235, 0.25);
+    
+    --modal-backdrop: rgba(15, 23, 42, 0.75);
+    
+    /* Nuevas variables */
+    --card-border: 1px solid rgba(226, 232, 240, 0.8);
+    --glass-background: rgba(255, 255, 255, 0.8);
+    --glass-blur: 12px;
+    --card-hover-transform: translateY(-4px);
+    --button-hover-transform: translateY(-2px);
+    
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --header-height: 70px;
 } 

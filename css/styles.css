@@ -1,0 +1,52 @@
+/* Estilos para secciones del formulario */
+.calculator-form h3 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+/* Estilos para checkbox groups */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    margin-bottom: 8px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 6px;
+}
+
+/* Campo opcional */
+.form-group small {
+    display: block;
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 4px;
+}
+
+/* Mejora espaciado en formulario */
+#calculator-form {
+    max-width: 100%;
+}
+
+/* Responsive para los nuevos elementos */
+@media (max-width: 768px) {
+    .checkbox-group {
+        flex-direction: column;
+    }
+    
+    .checkbox-item {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+} 

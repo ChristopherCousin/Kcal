@@ -1,6 +1,6 @@
 // Módulo para gestionar el seguimiento de alimentos
 
-import { dailyEntries, selectedFood, uploadedPhotoFile, currentMealType } from './data.js';
+import { dailyEntries, selectedFood, uploadedPhotoFile, currentMealType, setUploadedPhotoFile, clearUploadedPhotoFile, setSelectedFood } from './data.js';
 import { updateUI } from './ui.js';
 import { closeAIAnalysisModal, closeMealOptionsModal, openAIAnalysisModal } from './modals.js';
 import { showToast, switchTab } from '../utils/ui-helpers.js';
@@ -105,7 +105,7 @@ export function handlePhotoUpload(file) {
     }
     
     // Store file for later
-    uploadedPhotoFile = file;
+    setUploadedPhotoFile(file);
     
     // Show preview
     const reader = new FileReader();
@@ -128,7 +128,7 @@ export function resetPhotoUpload() {
     uploadZone.style.display = 'flex';
     photoPreview.style.display = 'none';
     foodPhotoInput.value = '';
-    uploadedPhotoFile = null;
+    clearUploadedPhotoFile();
 }
 
 /**
@@ -140,7 +140,11 @@ export function analyzePhotoWithAI() {
         return;
     }
     
+    // Usar el modal para mostrar el análisis
     openAIAnalysisModal();
+    
+    // El análisis real se realizará en el módulo food-recognition.js
+    // que será llamado por modals.js
 }
 
 /**
@@ -226,7 +230,7 @@ export function showFoodDetails(food) {
     const foodQuantityInput = document.getElementById('foodQuantity');
     
     // Store selected food
-    window.selectedFood = food;
+    setSelectedFood(food);
     
     searchResults.classList.add('hidden');
     searchDetails.classList.remove('hidden');
@@ -260,14 +264,14 @@ export function updateNutritionPreview(food, quantity) {
 export function addSelectedFood() {
     const foodQuantityInput = document.getElementById('foodQuantity');
     
-    if (!window.selectedFood) {
+    if (!selectedFood) {
         showToast('No hay ningún alimento seleccionado.', 'warning');
         return;
     }
     
     const quantity = parseInt(foodQuantityInput.value) || 100;
     const multiplier = quantity / 100;
-    const food = window.selectedFood;
+    const food = selectedFood;
     
     const newEntry = {
         id: Date.now(),
@@ -300,5 +304,5 @@ export function addSelectedFood() {
     switchTab('quick');
     
     // Clear selected food
-    window.selectedFood = null;
+    setSelectedFood(null);
 } 

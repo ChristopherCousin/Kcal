@@ -5,64 +5,92 @@
 
 .form-group label {
     display: block;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
     font-weight: 500;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="password"],
-textarea,
-select {
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group select,
+.form-group textarea {
     width: 100%;
-    padding: var(--spacing-sm) var(--spacing-md);
-    background-color: var(--input-background);
+    padding: 12px var(--spacing-md);
+    border-radius: var(--border-radius);
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius-sm);
+    background-color: var(--input-background);
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
     color: var(--text-color);
-    font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
-textarea:focus,
-select:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px var(--input-focus-shadow);
+    background-color: var(--card-background);
 }
 
-input::placeholder {
-    color: var(--text-muted);
-}
-
-/* Select Wrapper for custom arrow */
+/* Estilo mejorado para selects */
 .select-wrapper {
     position: relative;
 }
 
-.select-wrapper select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    padding-right: var(--spacing-xl);
-}
-
 .select-wrapper::after {
-    content: '\25BC'; /* Down arrow */
+    content: "";
     position: absolute;
     top: 50%;
     right: var(--spacing-md);
     transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--text-secondary);
     pointer-events: none;
-    color: var(--text-secondary);
+}
+
+.select-wrapper select {
+    appearance: none;
+    padding-right: calc(var(--spacing-md) * 2.5);
+    cursor: pointer;
+}
+
+/* Estilos para inputs pequeños */
+.form-group small {
+    display: block;
+    margin-top: var(--spacing-xs);
+    color: var(--text-muted);
     font-size: 0.8rem;
+}
+
+/* Estilos para etiquetas de sección */
+h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: var(--spacing-lg) 0 var(--spacing-md);
+    color: var(--text-color);
+    position: relative;
+}
+
+h3:first-of-type {
+    margin-top: 0;
+}
+
+h3::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    border-radius: var(--border-radius-full);
 }
 
 /* Common meals grid */
@@ -332,4 +360,237 @@ input::placeholder {
     background-color: var(--input-background);
     color: var(--text-color);
     font-size: 1rem;
+} 
+
+/* Añadimos estilos para los botones grandes y opciones rápidas */
+.button-xl {
+    padding: 16px 24px;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    box-shadow: 0 4px 12px rgba(41, 182, 246, 0.2);
+    transition: all 0.3s ease;
+}
+
+.button-xl:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(41, 182, 246, 0.25);
+}
+
+.button-xl .material-symbols-rounded {
+    font-size: 1.5rem;
+}
+
+.quick-options {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.quick-option-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.quick-option-btn:hover {
+    transform: scale(1.1);
+}
+
+.quick-option-btn .material-symbols-rounded {
+    font-size: 1.2rem;
+}
+
+/* Mejoramos el estilo del panel de seguimiento */
+.fitness-header {
+    background: linear-gradient(135deg, var(--primary-color), #006064);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin: -1px;
+    margin-bottom: var(--spacing-md);
+}
+
+.fitness-header h2 {
+    color: white;
+    font-weight: 700;
+    margin: 0;
+}
+
+.goal-indicator {
+    display: flex;
+    align-items: center;
+    margin-top: var(--spacing-sm);
+    font-weight: 600;
+    gap: var(--spacing-sm);
+}
+
+.goal-badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.goal-type {
+    fill: var(--accent-color);
+    font-size: 14px;
+    font-weight: 600;
+    transform: rotate(90deg);
+    text-transform: uppercase;
+}
+
+/* Mejoramos la lista de entradas */
+.entries-container {
+    margin-top: var(--spacing-lg);
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.entries-container h3 {
+    margin-top: 0;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.entries-list {
+    list-style: none;
+    margin: var(--spacing-sm) 0 0;
+    padding: 0;
+}
+
+.entries-list li {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--input-border);
+    transition: background-color 0.2s ease;
+}
+
+.entries-list li:hover {
+    background-color: var(--hover-background);
+}
+
+.no-entries {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: var(--spacing-lg) 0;
+    font-style: italic;
+}
+
+/* Soporte para pantallas más pequeñas */
+@media (max-width: 500px) {
+    .button-xl {
+        padding: 14px 20px;
+        font-size: 1.1rem;
+    }
+    
+    .quick-option-btn {
+        width: 42px;
+        height: 42px;
+    }
+}
+
+/* Secciones de formulario */
+.form-section {
+    margin-bottom: var(--spacing-lg);
+    animation: fadeIn 0.5s ease;
+}
+
+/* Badge en tarjetas */
+.card-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--border-radius-full);
+}
+
+/* Nuevos estilos para opciones de objetivos */
+.goal-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.goal-option {
+    flex: 1;
+    min-width: 105px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-md);
+    background-color: var(--input-background);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.goal-option:hover {
+    background-color: var(--hover-background);
+    transform: translateY(-2px);
+}
+
+.goal-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.goal-option input[type="radio"]:checked + .goal-icon + .goal-text,
+.goal-option input[type="radio"]:checked + .goal-icon {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.goal-option input[type="radio"]:checked ~ * {
+    transform: scale(1.05);
+}
+
+.goal-option input[type="radio"]:checked + .goal-icon {
+    transform: scale(1.2);
+}
+
+.goal-option input[type="radio"]:checked ~ .goal-text {
+    transform: scale(1);
+}
+
+.goal-option input[type="radio"]:checked ~ * {
+    transform: scale(1);
+}
+
+.goal-icon {
+    font-size: 1.6rem;
+    margin-bottom: var(--spacing-xs);
+    transition: transform 0.2s ease;
+}
+
+.goal-text {
+    font-size: 0.85rem;
+    text-align: center;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.goal-option input[type="radio"]:checked ~ .goal-option {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 } 

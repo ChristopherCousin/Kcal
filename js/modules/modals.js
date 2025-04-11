@@ -3,11 +3,13 @@
 import { userProfile, userGoals, currentMealType, COMMON_MEALS } from './data.js';
 import { addCommonMeal } from './food-tracking.js';
 import { showToast } from '../utils/ui-helpers.js';
+import { analyzeFoodPhoto, addDetectedFoodsToJournal } from './food-recognition.js';
+import { generateNutritionPlan, analyzeProgressAndActivity } from './ai-coaching.js';
 
 /**
  * Opens the goal setting modal.
  */
-export function openGoalModal() {
+function openGoalModal() {
     const goalModal = document.getElementById('goalModal');
     const userAgeInput = document.getElementById('userAge');
     const userSexInput = document.getElementById('userSex');
@@ -46,7 +48,7 @@ export function openGoalModal() {
 /**
  * Closes the goal modal.
  */
-export function closeGoalModal() {
+function closeGoalModal() {
     // Usar la función global para cambiar el estado visual
     if (window.updateAppVisualState) {
         window.updateAppVisualState('calculator');
@@ -58,28 +60,29 @@ export function closeGoalModal() {
 }
 
 /**
- * Opens the AI analysis modal and starts the analysis simulation.
+ * Opens the AI analysis modal and starts the analysis.
  */
-export function openAIAnalysisModal() {
+function openAIAnalysisModal() {
     const aiAnalysisModal = document.getElementById('aiAnalysisModal');
     const aiLoadingIndicator = document.getElementById('aiLoadingIndicator');
     const aiResultContent = document.getElementById('aiResultContent');
     
-    // Reset and show modal
+    // Reset y mostrar modal
     aiLoadingIndicator.style.display = 'flex';
     aiResultContent.style.display = 'none';
     aiAnalysisModal.style.display = 'block';
     
-    // Simulate AI analysis (would be replaced with real API call)
-    setTimeout(() => {
-        simulateAIFoodDetection();
-    }, 2000);
+    // Iniciar análisis real con Vision API
+    analyzeFoodPhoto().catch(error => {
+        console.error('Error en análisis de foto:', error);
+        showToast('Error al analizar la imagen. Inténtalo de nuevo.', 'error');
+    });
 }
 
 /**
  * Closes the AI analysis modal.
  */
-export function closeAIAnalysisModal() {
+function closeAIAnalysisModal() {
     const aiAnalysisModal = document.getElementById('aiAnalysisModal');
     aiAnalysisModal.style.display = 'none';
 }
@@ -88,7 +91,7 @@ export function closeAIAnalysisModal() {
  * Opens the meal options modal.
  * @param {string} mealType - The type of meal (breakfast, lunch, dinner, or snack)
  */
-export function openMealOptionsModal(mealType) {
+function openMealOptionsModal(mealType) {
     const mealOptionsModal = document.getElementById('mealOptionsModal');
     const mealTypeHeaderEl = document.getElementById('mealTypeHeader');
     const commonMealsGridEl = document.getElementById('commonMealsGrid');
@@ -131,81 +134,349 @@ export function openMealOptionsModal(mealType) {
 /**
  * Closes the meal options modal.
  */
-export function closeMealOptionsModal() {
+function closeMealOptionsModal() {
     const mealOptionsModal = document.getElementById('mealOptionsModal');
     mealOptionsModal.style.display = 'none';
 }
 
 /**
- * Simulates AI food detection from an uploaded photo.
- * In a real app, this would call a food recognition API.
+ * Adds the food detected by AI to the daily entries.
  */
-function simulateAIFoodDetection() {
-    const aiLoadingIndicator = document.getElementById('aiLoadingIndicator');
-    const aiResultContent = document.getElementById('aiResultContent');
-    const detectedFoodsList = document.getElementById('detectedFoodsList');
-    const aiKcalEl = document.getElementById('aiKcal');
-    const aiProteinEl = document.getElementById('aiProtein');
-    const aiCarbEl = document.getElementById('aiCarb');
-    const aiFatEl = document.getElementById('aiFat');
-    
-    // Sample detected foods (would come from API)
-    const detectedFoods = [
-        { name: "Ensalada de tomate", confidence: 92 },
-        { name: "Pollo a la plancha", confidence: 88 },
-        { name: "Arroz blanco", confidence: 76 }
-    ];
-    
-    // Sample nutritional values (would come from API)
-    const nutritionEstimate = {
-        kcal: 450,
-        protein: 35,
-        carb: 40,
-        fat: 12
-    };
-    
-    // Update detected foods list
-    detectedFoodsList.innerHTML = '';
-    detectedFoods.forEach(food => {
-        const li = document.createElement('li');
-        li.innerHTML = `${food.name} <span class="confidence-score">${food.confidence}%</span>`;
-        detectedFoodsList.appendChild(li);
-    });
-    
-    // Update nutrition values
-    aiKcalEl.textContent = nutritionEstimate.kcal;
-    aiProteinEl.textContent = `${nutritionEstimate.protein}g`;
-    aiCarbEl.textContent = `${nutritionEstimate.carb}g`;
-    aiFatEl.textContent = `${nutritionEstimate.fat}g`;
-    
-    // Hide loading, show results
-    aiLoadingIndicator.style.display = 'none';
-    aiResultContent.style.display = 'block';
+function confirmAIFood() {
+    // Usar la función del nuevo módulo
+    addDetectedFoodsToJournal();
+    closeAIAnalysisModal();
 }
 
 /**
- * Adds the food detected by AI to the daily entries.
+ * Closes the nutrition plan modal.
  */
-export function confirmAIFood() {
-    const aiKcalEl = document.getElementById('aiKcal');
-    const aiProteinEl = document.getElementById('aiProtein');
-    const aiCarbEl = document.getElementById('aiCarb');
-    const aiFatEl = document.getElementById('aiFat');
-    const detectedFoodsList = document.getElementById('detectedFoodsList');
+function closeNutritionPlanModal() {
+    const planModal = document.getElementById('nutritionPlanModal');
+    if (planModal) {
+        planModal.style.display = 'none';
+    }
+}
+
+/**
+ * Abre el modal para generar un plan nutricional personalizado
+ */
+function openNutritionPlanModal() {
+    const planModal = document.getElementById('nutritionPlanModal');
+    const planForm = document.getElementById('planForm');
+    const planResults = document.getElementById('planResults');
+    const planLoading = document.getElementById('aiCoachLoadingIndicator');
     
-    // Extract the detected food names
-    const foodItems = Array.from(detectedFoodsList.children).map(li => 
-        li.textContent.split(' ').slice(0, -1).join(' ')
-    );
+    if (!planModal) {
+        console.error('El modal de plan nutricional no existe en el DOM');
+        return;
+    }
     
-    // Extract the nutrition values
-    const kcal = parseInt(aiKcalEl.textContent) || 0;
-    const protein = parseFloat(aiProteinEl.textContent) || 0;
-    const carb = parseFloat(aiCarbEl.textContent) || 0;
-    const fat = parseFloat(aiFatEl.textContent) || 0;
+    // Mostrar el modal y configurar la vista inicial
+    planModal.style.display = 'block';
+    planForm.style.display = 'block';
+    planResults.style.display = 'none';
     
-    // This would normally call the appropriate function from food-tracking.js
-    // But for now we'll just show a success message
-    showToast(`Alimentos añadidos: ${foodItems.join(', ')}`, 'success');
-    closeAIAnalysisModal();
-} 
+    if (planLoading) {
+        planLoading.style.display = 'none';
+    }
+    
+    // Pre-rellenar con datos del usuario si existen
+    if (userProfile && userGoals) {
+        const weekdayActivitySelect = document.getElementById('weekdayActivity');
+        const weekendActivitySelect = document.getElementById('weekendActivity');
+        
+        if (weekdayActivitySelect) {
+            weekdayActivitySelect.value = userProfile.activityLevel || 'moderada';
+        }
+        if (weekendActivitySelect) {
+            weekendActivitySelect.value = userProfile.activityLevel === 'alta' ? 'moderada' : 
+                                          userProfile.activityLevel === 'moderada' ? 'baja' : 
+                                          userProfile.activityLevel || 'baja';
+        }
+    }
+}
+
+/**
+ * Genera un plan nutricional basado en los datos del formulario
+ */
+function generatePlan() {
+    // Obtener datos del formulario
+    const weekdayActivity = document.getElementById('weekdayActivity').value;
+    const weekendActivity = document.getElementById('weekendActivity').value;
+    const dietaryPreferences = Array.from(
+        document.querySelectorAll('input[name="dietPreference"]:checked')
+    ).map(input => input.value);
+    
+    const allergiesInput = document.getElementById('allergies');
+    const allergies = allergiesInput && allergiesInput.value ? 
+        allergiesInput.value.split(',').map(item => item.trim()) : [];
+    
+    // Mostrar interfaz de carga
+    const planForm = document.getElementById('planForm');
+    const planResults = document.getElementById('planResults');
+    const loadingIndicator = document.getElementById('aiCoachLoadingIndicator');
+    
+    if (planForm) planForm.style.display = 'none';
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    
+    try {
+        // Generar plan nutricional
+        const plan = generateNutritionPlan({
+            weekdayActivity,
+            weekendActivity,
+            dietaryPreferences,
+            foodAllergies: allergies
+        }).then(plan => {
+            if (!plan) {
+                throw new Error('No se pudo generar el plan nutricional');
+            }
+            
+            // Actualizar UI con los resultados
+            updatePlanModalUI(plan);
+            
+            if (planResults) planResults.style.display = 'block';
+        }).catch(error => {
+            console.error('Error al generar plan:', error);
+            showToast('Error al generar el plan nutricional', 'error');
+            
+            // Volver a mostrar el formulario en caso de error
+            if (planForm) planForm.style.display = 'block';
+        }).finally(() => {
+            // Ocultar indicador de carga
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+        });
+    } catch (error) {
+        console.error('Error al iniciar generación de plan:', error);
+        showToast('Error al generar el plan nutricional', 'error');
+        
+        // Volver a mostrar el formulario en caso de error
+        if (planForm) planForm.style.display = 'block';
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+    }
+}
+
+/**
+ * Actualiza la interfaz del modal con los datos del plan generado
+ * @param {Object} plan - Plan nutricional generado
+ */
+function updatePlanModalUI(plan) {
+    if (!plan) return;
+    
+    const weekdayPlanContainer = document.getElementById('weekdayPlanContainer');
+    const weekendPlanContainer = document.getElementById('weekendPlanContainer');
+    const planTipsContainer = document.getElementById('planTipsContainer');
+    
+    // Actualizar plan de días laborables
+    if (weekdayPlanContainer && plan.weekdayPlan) {
+        const wp = plan.weekdayPlan;
+        weekdayPlanContainer.innerHTML = `
+            <div class="plan-summary">
+                <h3>Días Laborables</h3>
+                <div class="macro-summary">
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.calories}</span>
+                        <span class="macro-label">kcal</span>
+                    </div>
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.protein}g</span>
+                        <span class="macro-label">Proteínas</span>
+                    </div>
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.carbs}g</span>
+                        <span class="macro-label">Carbos</span>
+                    </div>
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.fat}g</span>
+                        <span class="macro-label">Grasas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="plan-meals">
+                ${wp.meals.map(meal => `
+                    <div class="plan-meal">
+                        <h4>${meal.name}</h4>
+                        <div class="meal-macros">
+                            <span>${meal.macros.kcal} kcal</span>
+                            <span>${meal.macros.protein}g P</span>
+                            <span>${meal.macros.carbs}g C</span>
+                            <span>${meal.macros.fat}g G</span>
+                        </div>
+                        <ul class="meal-foods">
+                            ${meal.foods.map(food => `<li>${food}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    // Actualizar plan de fin de semana
+    if (weekendPlanContainer && plan.weekendPlan) {
+        const wp = plan.weekendPlan;
+        weekendPlanContainer.innerHTML = `
+            <div class="plan-summary">
+                <h3>Fin de Semana</h3>
+                <div class="macro-summary">
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.calories}</span>
+                        <span class="macro-label">kcal</span>
+                    </div>
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.protein}g</span>
+                        <span class="macro-label">Proteínas</span>
+                    </div>
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.carbs}g</span>
+                        <span class="macro-label">Carbos</span>
+                    </div>
+                    <div class="macro-item">
+                        <span class="macro-value">${wp.fat}g</span>
+                        <span class="macro-label">Grasas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="plan-meals">
+                ${wp.meals.map(meal => `
+                    <div class="plan-meal">
+                        <h4>${meal.name}</h4>
+                        <div class="meal-macros">
+                            <span>${meal.macros.kcal} kcal</span>
+                            <span>${meal.macros.protein}g P</span>
+                            <span>${meal.macros.carbs}g C</span>
+                            <span>${meal.macros.fat}g G</span>
+                        </div>
+                        <ul class="meal-foods">
+                            ${meal.foods.map(food => `<li>${food}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    // Actualizar consejos
+    if (planTipsContainer && plan.tips) {
+        planTipsContainer.innerHTML = `
+            <h3>Consejos Personalizados</h3>
+            <ul>
+                ${plan.tips.map(tip => `<li>${tip}</li>`).join('')}
+            </ul>
+        `;
+    }
+}
+
+/**
+ * Abre el modal para analizar el progreso del usuario
+ */
+function openProgressAnalysisModal() {
+    // Implementación del modal de análisis de progreso
+    const progressModal = document.getElementById('progressAnalysisModal');
+    const progressLoading = document.getElementById('progressLoadingIndicator');
+    const progressResults = document.getElementById('progressResultsContent');
+    
+    if (!progressModal) {
+        console.error('El modal de análisis de progreso no existe en el DOM');
+        return;
+    }
+    
+    // Mostrar modal y configurar estado inicial
+    progressModal.style.display = 'block';
+    if (progressLoading) progressLoading.style.display = 'flex';
+    if (progressResults) progressResults.style.display = 'none';
+    
+    // Análisis real usando la IA
+    analyzeProgressAndActivity().then(analysis => {
+        updateProgressAnalysisUI(analysis);
+        
+        if (progressResults) progressResults.style.display = 'block';
+    }).catch(error => {
+        console.error('Error al analizar progreso:', error);
+        showToast('Error al analizar tus datos', 'error');
+    }).finally(() => {
+        if (progressLoading) progressLoading.style.display = 'none';
+    });
+}
+
+/**
+ * Cierra el modal de análisis de progreso
+ */
+function closeProgressAnalysisModal() {
+    const progressModal = document.getElementById('progressAnalysisModal');
+    if (progressModal) {
+        progressModal.style.display = 'none';
+    }
+}
+
+/**
+ * Actualiza la interfaz del modal con los datos del análisis de progreso
+ * @param {Object} analysis - Análisis generado por la IA
+ */
+function updateProgressAnalysisUI(analysis) {
+    if (!analysis) return;
+    
+    const progressSummary = document.getElementById('progressSummary');
+    const progressRecommendations = document.getElementById('progressRecommendations');
+    const consistencyScore = document.getElementById('consistencyScore');
+    
+    if (progressSummary && analysis.summary) {
+        progressSummary.textContent = analysis.summary;
+    }
+    
+    if (progressRecommendations && analysis.recommendations) {
+        progressRecommendations.innerHTML = '';
+        
+        analysis.recommendations.forEach(rec => {
+            const item = document.createElement('li');
+            item.className = 'recommendation-item';
+            item.innerHTML = `
+                <div class="recommendation-icon">
+                    <span class="material-symbols-rounded">${rec.icon || 'tips_and_updates'}</span>
+                </div>
+                <div class="recommendation-content">
+                    <h4>${rec.title}</h4>
+                    <p>${rec.description}</p>
+                </div>
+            `;
+            progressRecommendations.appendChild(item);
+        });
+    }
+    
+    if (consistencyScore && analysis.metrics && analysis.metrics.consistency) {
+        const score = analysis.metrics.consistency;
+        consistencyScore.textContent = `${score}%`;
+        
+        const scoreBar = document.querySelector('.consistency-score-bar .score-fill');
+        if (scoreBar) {
+            scoreBar.style.width = `${score}%`;
+            
+            // Clase para el color según puntuación
+            scoreBar.className = 'score-fill';
+            if (score >= 80) {
+                scoreBar.classList.add('score-excellent');
+            } else if (score >= 60) {
+                scoreBar.classList.add('score-good');
+            } else if (score >= 40) {
+                scoreBar.classList.add('score-average');
+            } else {
+                scoreBar.classList.add('score-needs-improvement');
+            }
+        }
+    }
+}
+
+// Actualizar la exportación al final de todas las definiciones
+export {
+    openGoalModal,
+    closeGoalModal,
+    openAIAnalysisModal,
+    closeAIAnalysisModal,
+    openMealOptionsModal,
+    closeMealOptionsModal,
+    confirmAIFood,
+    openNutritionPlanModal,
+    closeNutritionPlanModal,
+    generatePlan,
+    openProgressAnalysisModal,
+    closeProgressAnalysisModal
+}; 

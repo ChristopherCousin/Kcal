@@ -4,84 +4,133 @@ import { userGoals, userProfile, dailyEntries, isLoading, calculateTotals, delet
 import { updateRing } from '../utils/ui-helpers.js';
 
 /**
- * Updates the UI based on current state.
+ * Updates the UI with the current app state.
  */
 export function updateUI() {
-    if (isLoading) return;
-
-    const totals = calculateTotals();
-    const goalsAreSet = userGoals.kcal && userGoals.kcal > 0;
-    
-    const kcalTotalEl = document.getElementById('kcalTotal');
-    const proteinTotalEl = document.getElementById('proteinTotal');
-    const carbTotalEl = document.getElementById('carbTotal');
-    const fatTotalEl = document.getElementById('fatTotal');
-    const kcalGoalEl = document.getElementById('kcalGoal');
-    const kcalRing = document.getElementById('kcalRing');
-    const proteinRing = document.getElementById('proteinRing');
-    const carbRing = document.getElementById('carbRing');
-    const fatRing = document.getElementById('fatRing');
-    const goalStatusEl = document.getElementById('goalStatus');
-    const aiCommentTextEl = document.getElementById('aiCommentText');
-    
-    // Update totals display
-    kcalTotalEl.textContent = Math.round(totals.kcal);
-    proteinTotalEl.textContent = Math.round(totals.protein * 10) / 10;
-    carbTotalEl.textContent = Math.round(totals.carb * 10) / 10;
-    fatTotalEl.textContent = Math.round(totals.fat * 10) / 10;
-    
-    // Update rings
-    if (goalsAreSet) {
-        kcalGoalEl.textContent = userGoals.kcal;
-        const kcalPercent = (totals.kcal / userGoals.kcal) * 100;
-        const proteinPercent = (totals.protein / userGoals.protein) * 100;
-        const carbPercent = (totals.carb / userGoals.carb) * 100;
-        const fatPercent = (totals.fat / userGoals.fat) * 100;
-        
-        updateRing(kcalRing, kcalPercent, true);
-        updateRing(proteinRing, proteinPercent, true);
-        updateRing(carbRing, carbPercent, true);
-        updateRing(fatRing, fatPercent, true);
-        
-        // Update goal status
-        const kcalDifference = totals.kcal - userGoals.kcal;
-        const diffThreshold = userGoals.kcal * 0.1; // 10% threshold
-        
-        if (totals.kcal > 0) {
-            if (kcalDifference < -diffThreshold) {
-                goalStatusEl.textContent = 'Déficit';
-                goalStatusEl.className = 'goal-status deficit';
-            } else if (kcalDifference > diffThreshold) {
-                goalStatusEl.textContent = 'Superávit';
-                goalStatusEl.className = 'goal-status surplus';
-            } else {
-                goalStatusEl.textContent = 'Equilibrio';
-                goalStatusEl.className = 'goal-status';
-            }
-        } else {
-            goalStatusEl.textContent = 'Comienza';
-            goalStatusEl.className = 'goal-status';
-        }
-    } else {
-        // Reset rings when no goals set
-        kcalGoalEl.textContent = '--';
-        updateRing(kcalRing, 0);
-        updateRing(proteinRing, 0);
-        updateRing(carbRing, 0);
-        updateRing(fatRing, 0);
-        
-        goalStatusEl.textContent = 'Sin objetivos';
-        goalStatusEl.className = 'goal-status';
+    // Si estamos en medio de la carga, no actualizar la UI todavía
+    if (isLoading) {
+        console.log('updateUI: Skipping UI update during loading');
+        return;
     }
 
-    // Render entries list
-    renderEntriesList();
+    console.log('updateUI: Actualizando interfaz de usuario');
     
-    // Render history list
-    renderHistoryList();
-    
-    // Update AI comment
-    aiCommentTextEl.textContent = generateAiComment(totals, userGoals);
+    try {
+        // Calcular totales diarios
+        const totals = calculateTotals();
+        
+        // Actualizar valores de macros solo si los elementos existen
+        const elements = {
+            kcalTotalEl: document.getElementById('kcalTotal'),
+            kcalGoalEl: document.getElementById('kcalGoal'),
+            kcalPercentageEl: document.getElementById('kcalPercentage'),
+            proteinTotalEl: document.getElementById('proteinTotal'),
+            carbTotalEl: document.getElementById('carbTotal'),
+            fatTotalEl: document.getElementById('fatTotal'),
+            mainGoalRing: document.getElementById('mainGoalRing'),
+            proteinProgressBar: document.getElementById('proteinProgressBar'),
+            carbProgressBar: document.getElementById('carbProgressBar'),
+            fatProgressBar: document.getElementById('fatProgressBar'),
+            goalStatusEl: document.getElementById('goalStatus'),
+            goalTypeEl: document.getElementById('goalTypeText'),
+            aiCommentTextEl: document.getElementById('aiCommentText')
+        };
+        
+        // Comprobar qué elementos existen y actualizar solo esos
+        for (const [key, element] of Object.entries(elements)) {
+            if (!element) {
+                console.log(`updateUI: Elemento ${key} no encontrado en el DOM`);
+            }
+        }
+        
+        // Actualizar valores básicos si existen
+        if (elements.kcalTotalEl) elements.kcalTotalEl.textContent = Math.round(totals.kcal);
+        if (elements.proteinTotalEl) elements.proteinTotalEl.textContent = Math.round(totals.protein);
+        if (elements.carbTotalEl) elements.carbTotalEl.textContent = Math.round(totals.carb);
+        if (elements.fatTotalEl) elements.fatTotalEl.textContent = Math.round(totals.fat);
+        
+        // Actualizar barras de progreso si existen y hay objetivos
+        if (elements.proteinProgressBar && userGoals.protein)
+            elements.proteinProgressBar.style.width = `${Math.min(100, (totals.protein / userGoals.protein) * 100)}%`;
+        if (elements.carbProgressBar && userGoals.carb)
+            elements.carbProgressBar.style.width = `${Math.min(100, (totals.carb / userGoals.carb) * 100)}%`;
+        if (elements.fatProgressBar && userGoals.fat)
+            elements.fatProgressBar.style.width = `${Math.min(100, (totals.fat / userGoals.fat) * 100)}%`;
+        
+        // Establecer tipo de objetivo
+        if (elements.goalTypeEl) {
+            if (userProfile.goal) {
+                if (userProfile.goal < 0) elements.goalTypeEl.textContent = 'déficit';
+                else if (userProfile.goal > 0) elements.goalTypeEl.textContent = 'volumen';
+                else elements.goalTypeEl.textContent = 'mantenimiento';
+            } else {
+                elements.goalTypeEl.textContent = 'sin meta';
+            }
+        }
+        
+        // Si hay objetivos establecidos, actualizar anillos y estado
+        if (userGoals && userGoals.kcal && userGoals.kcal > 0) {
+            if (elements.kcalGoalEl) elements.kcalGoalEl.textContent = Math.round(userGoals.kcal);
+            
+            const kcalPercent = (totals.kcal / userGoals.kcal) * 100;
+            if (elements.kcalPercentageEl) elements.kcalPercentageEl.textContent = Math.round(kcalPercent);
+            
+            // Actualizar anillo solo si existe
+            if (elements.mainGoalRing) {
+                console.log('updateUI: Actualizando mainGoalRing');
+                updateRing(elements.mainGoalRing, kcalPercent, true);
+            }
+            
+            // Actualizar estado del objetivo
+            if (elements.goalStatusEl) {
+                if (kcalPercent > 90) {
+                    elements.goalStatusEl.textContent = 'Completo';
+                    elements.goalStatusEl.className = 'goal-badge success';
+                } else if (kcalPercent > 70) {
+                    elements.goalStatusEl.textContent = 'Avanzado';
+                    elements.goalStatusEl.className = 'goal-badge warning';
+                } else {
+                    elements.goalStatusEl.textContent = 'En progreso';
+                    elements.goalStatusEl.className = 'goal-badge';
+                }
+            }
+        } else {
+            // Sin objetivos establecidos
+            if (elements.kcalGoalEl) elements.kcalGoalEl.textContent = '--';
+            
+            // Poner anillo a 0 solo si existe
+            if (elements.mainGoalRing) {
+                console.log('updateUI: Reseteando mainGoalRing a 0');
+                updateRing(elements.mainGoalRing, 0);
+            }
+            
+            if (elements.goalStatusEl) {
+                elements.goalStatusEl.textContent = 'Sin objetivos';
+                elements.goalStatusEl.className = 'goal-badge';
+            }
+        }
+        
+        // Intentar renderizar las listas solo si estamos en la página correcta
+        try {
+            renderEntriesList();
+            renderHistoryList();
+        } catch (error) {
+            console.log('updateUI: No se pudieron renderizar las listas:', error.message);
+        }
+        
+        // Actualizar comentario de IA
+        if (elements.aiCommentTextEl) {
+            try {
+                elements.aiCommentTextEl.textContent = generateAiComment(totals, userGoals);
+            } catch (error) {
+                console.log('updateUI: Error al generar comentario IA:', error.message);
+            }
+        }
+        
+        console.log('updateUI: Interfaz actualizada correctamente');
+    } catch (error) {
+        console.error('updateUI: Error al actualizar la interfaz:', error);
+    }
 }
 
 /**
@@ -255,4 +304,215 @@ function generateAiComment(totals, goals) {
     }
 
     return comments[0];
+}
+
+/**
+ * Actualiza la interfaz de usuario con los resultados del cálculo
+ * @param {Object} results - Resultados del cálculo con los datos nutricionales
+ */
+export function updateCalculatorResults(results) {
+    if (!results) {
+        console.error('Error: No se proporcionaron resultados para actualizar la UI');
+        return;
+    }
+
+    console.log('Actualizando UI con resultados detallados:', results);
+    
+    // Valores principales
+    document.getElementById('bmr-value').textContent = results.bmr;
+    document.getElementById('maintenance-value').textContent = results.maintenance;
+    document.getElementById('goal-value').textContent = results.goalCalories;
+    
+    // Macronutrientes básicos
+    document.getElementById('protein-grams').textContent = results.protein;
+    document.getElementById('carbs-grams').textContent = results.carbs;
+    document.getElementById('fat-grams').textContent = results.fat;
+    
+    // Calcular porcentajes si no vienen en los resultados
+    const proteinPercent = results.proteinPercent || 
+        Math.round((results.protein * 4 / results.goalCalories) * 100);
+    const carbsPercent = results.carbsPercent || 
+        Math.round((results.carbs * 4 / results.goalCalories) * 100);
+    const fatPercent = results.fatPercent || 
+        Math.round((results.fat * 9 / results.goalCalories) * 100);
+    
+    // Actualizar barras de macros
+    document.getElementById('protein-bar').style.width = `${proteinPercent}%`;
+    document.getElementById('carbs-bar').style.width = `${carbsPercent}%`;
+    document.getElementById('fat-bar').style.width = `${fatPercent}%`;
+    
+    // Actualizar porcentajes en texto
+    document.getElementById('protein-percent').textContent = proteinPercent;
+    document.getElementById('carbs-percent').textContent = carbsPercent;
+    document.getElementById('fat-percent').textContent = fatPercent;
+    
+    // Si hay información adicional de la IA, mostrarla
+    const resultCard = document.getElementById('results-card');
+    
+    // Buscar o crear la sección de recomendaciones avanzadas
+    let advancedSection = document.getElementById('advanced-recommendations');
+    if (!advancedSection && (results.recommendedFoods || results.foodsToAvoid || results.supplements)) {
+        advancedSection = document.createElement('div');
+        advancedSection.id = 'advanced-recommendations';
+        advancedSection.className = 'advanced-recommendations';
+        
+        // Crear título de la sección
+        const advancedTitle = document.createElement('h3');
+        advancedTitle.textContent = 'Recomendaciones Personalizadas';
+        advancedSection.appendChild(advancedTitle);
+        
+        // Añadir al final de la tarjeta de resultados, pero antes de los botones
+        const buttonRow = resultCard.querySelector('.button-row');
+        resultCard.insertBefore(advancedSection, buttonRow);
+        
+        // Estilos dinámicos para la nueva sección
+        const style = document.createElement('style');
+        style.textContent = `
+            .advanced-recommendations {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                border-left: 4px solid #4CAF50;
+            }
+            .recommendation-section {
+                margin-bottom: 15px;
+            }
+            .recommendation-section h4 {
+                margin-bottom: 8px;
+                color: #2E7D32;
+            }
+            .recommendation-list {
+                list-style-type: none;
+                padding-left: 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 0;
+            }
+            .recommendation-item {
+                background-color: #E8F5E9;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                color: #1B5E20;
+            }
+            .avoid-item {
+                background-color: #FFEBEE;
+                color: #B71C1C;
+            }
+            .supplement-item {
+                background-color: #E3F2FD;
+                color: #0D47A1;
+            }
+            @media (max-width: 768px) {
+                .recommendation-list {
+                    flex-direction: column;
+                    gap: 5px;
+                }
+                .recommendation-item {
+                    width: fit-content;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Actualizar las secciones avanzadas si existen
+    if (advancedSection) {
+        // Limpiar contenido previo, pero mantener el título
+        const title = advancedSection.querySelector('h3');
+        advancedSection.innerHTML = '';
+        advancedSection.appendChild(title);
+        
+        // Alimentos recomendados
+        if (results.recommendedFoods) {
+            const foodsSection = createRecommendationSection(
+                'Alimentos recomendados', 
+                Array.isArray(results.recommendedFoods) 
+                    ? results.recommendedFoods 
+                    : results.recommendedFoods.split(',').map(food => food.trim())
+            );
+            advancedSection.appendChild(foodsSection);
+        }
+        
+        // Alimentos a evitar
+        if (results.foodsToAvoid) {
+            const avoidSection = createRecommendationSection(
+                'Alimentos a limitar', 
+                Array.isArray(results.foodsToAvoid) 
+                    ? results.foodsToAvoid 
+                    : results.foodsToAvoid.split(',').map(food => food.trim()),
+                'avoid-item'
+            );
+            advancedSection.appendChild(avoidSection);
+        }
+        
+        // Suplementos recomendados
+        if (results.supplements) {
+            const supplementsSection = createRecommendationSection(
+                'Suplementos a considerar', 
+                Array.isArray(results.supplements) 
+                    ? results.supplements 
+                    : results.supplements.split(',').map(supp => supp.trim()),
+                'supplement-item'
+            );
+            advancedSection.appendChild(supplementsSection);
+        }
+        
+        // Distribución de comidas
+        if (results.mealsPerDay || results.feedingWindow) {
+            const mealsSection = document.createElement('div');
+            mealsSection.className = 'recommendation-section';
+            
+            const mealsTitle = document.createElement('h4');
+            mealsTitle.textContent = 'Patrón de alimentación';
+            mealsSection.appendChild(mealsTitle);
+            
+            const mealInfo = document.createElement('p');
+            mealInfo.innerHTML = results.mealsPerDay 
+                ? `<strong>Comidas recomendadas:</strong> ${results.mealsPerDay} al día<br>` 
+                : '';
+            mealInfo.innerHTML += results.feedingWindow 
+                ? `<strong>Ventana de alimentación:</strong> ${results.feedingWindow}` 
+                : '';
+            
+            mealsSection.appendChild(mealInfo);
+            advancedSection.appendChild(mealsSection);
+        }
+    }
+    
+    console.log('UI actualizada correctamente con resultados detallados');
+}
+
+/**
+ * Crea una sección de recomendaciones para la UI
+ * @param {string} title - Título de la sección
+ * @param {Array} items - Lista de elementos a mostrar
+ * @param {string} itemClass - Clase adicional para los elementos
+ * @returns {HTMLElement} - Elemento DOM de la sección
+ */
+function createRecommendationSection(title, items, itemClass = '') {
+    const section = document.createElement('div');
+    section.className = 'recommendation-section';
+    
+    const sectionTitle = document.createElement('h4');
+    sectionTitle.textContent = title;
+    section.appendChild(sectionTitle);
+    
+    const list = document.createElement('ul');
+    list.className = 'recommendation-list';
+    
+    // Filtrar elementos vacíos y limitar a 10 elementos
+    items = items.filter(item => item && item.trim()).slice(0, 10);
+    
+    items.forEach(item => {
+        const listItem = document.createElement('li');
+        listItem.className = `recommendation-item ${itemClass}`;
+        listItem.textContent = item.trim();
+        list.appendChild(listItem);
+    });
+    
+    section.appendChild(list);
+    return section;
 } 

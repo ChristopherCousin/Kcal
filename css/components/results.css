@@ -104,12 +104,16 @@
     justify-content: space-between;
     margin-top: var(--spacing-md);
     text-align: center;
+    flex-wrap: wrap;
 }
 
 .nutrition-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 1;
+    min-width: 70px;
+    margin-bottom: var(--spacing-sm);
 }
 
 .nutrition-value {
@@ -124,18 +128,670 @@
     margin-top: var(--spacing-xs);
 }
 
-#detectedFoodsList {
-    margin: var(--spacing-md) 0;
-    padding-left: var(--spacing-lg);
-}
-
-#detectedFoodsList li {
-    margin-bottom: var(--spacing-sm);
-    display: flex;
-    justify-content: space-between;
-}
-
 .confidence-score {
     color: var(--primary-light);
     font-size: 0.85rem;
+}
+
+/* Progress Rings */
+.macro-rings {
+    display: flex;
+    justify-content: space-around;
+    margin: var(--spacing-lg) 0;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.ring-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: var(--spacing-sm);
+    transition: transform 0.3s ease;
+}
+
+.ring-container:hover {
+    transform: scale(1.05);
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-ring-circle-bg {
+    fill: none;
+    stroke: var(--progress-background);
+    stroke-width: 8;
+}
+
+.progress-ring-circle {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 8;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.8s ease;
+}
+
+.progress-ring-circle.protein {
+    stroke: var(--protein-color);
+}
+
+.progress-ring-circle.carbs {
+    stroke: var(--carbs-color);
+}
+
+.progress-ring-circle.fat {
+    stroke: var(--fat-color);
+}
+
+.ring-text {
+    fill: var(--text-secondary);
+    font-size: 16px;
+    font-weight: 600;
+    transform: rotate(90deg);
+}
+
+.ring-value {
+    fill: var(--text-color);
+    font-size: 14px;
+    font-weight: 500;
+    transform: rotate(90deg);
+}
+
+/* New Fitness UI Styles */
+.fitness-header {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: var(--spacing-md);
+}
+
+.goal-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: var(--border-radius-sm);
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-right: var(--spacing-sm);
+}
+
+.fitness-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.fitness-goal-visual {
+    flex: 0 0 40%;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.goal-progress-container {
+    position: relative;
+    width: 100%;
+}
+
+.goal-progress-ring {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: auto;
+}
+
+.goal-text {
+    fill: var(--text-secondary);
+    font-size: 18px;
+    font-weight: 600;
+    transform: rotate(90deg);
+}
+
+.goal-value {
+    fill: var(--text-color);
+    font-size: 24px;
+    font-weight: 700;
+    transform: rotate(90deg);
+}
+
+.macro-summary {
+    flex: 0 0 55%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.macro-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.macro-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.protein-item .macro-icon {
+    background-color: rgba(255, 59, 48, 0.2);
+    color: var(--protein-color);
+}
+
+.carbs-item .macro-icon {
+    background-color: rgba(52, 199, 89, 0.2);
+    color: var(--carbs-color);
+}
+
+.fat-item .macro-icon {
+    background-color: rgba(0, 122, 255, 0.2);
+    color: var(--fat-color);
+}
+
+.macro-data {
+    flex: 1;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.macro-progress-bar {
+    height: 8px;
+    background-color: var(--progress-background);
+    border-radius: 4px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.progress-fill.protein {
+    background-color: var(--protein-color);
+}
+
+.progress-fill.carbs {
+    background-color: var(--carbs-color);
+}
+
+.progress-fill.fat {
+    background-color: var(--fat-color);
+}
+
+.add-food-main-btn {
+    width: 100%;
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    box-shadow: 0 4px 12px rgba(41, 182, 246, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-food-main-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(41, 182, 246, 0.4);
+}
+
+.add-food-main-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(41, 182, 246, 0.3);
+}
+
+/* Favorites tab styles */
+.favorites-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.favorites-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.category-btn {
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius-sm);
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm);
+}
+
+.favorite-item {
+    background-color: var(--input-background);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.favorite-item:hover {
+    transform: translateY(-4px);
+}
+
+.favorite-image {
+    height: 100px;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorite-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.favorite-info {
+    padding: var(--spacing-sm);
+}
+
+.favorite-name {
+    font-weight: 600;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.favorite-nutrition {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.empty-favorites {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+/* Scanner tab styles */
+.barcode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+}
+
+.scanner-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.scanner-placeholder .material-symbols-rounded {
+    font-size: 48px;
+    color: var(--text-secondary);
+}
+
+.scanner-view {
+    width: 100%;
+    position: relative;
+}
+
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scan-region {
+    width: 70%;
+    height: 25%;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
+}
+
+.scan-results {
+    padding: var(--spacing-md);
+}
+
+.scanned-nutrition {
+    margin: var(--spacing-md) 0;
+}
+
+/* AI Analysis improvements */
+.ai-result-image {
+    position: relative;
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.ai-result-image img {
+    width: 100%;
+    display: block;
+}
+
+.ai-labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.food-label {
+    position: absolute;
+    background-color: rgba(41, 182, 246, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: var(--border-radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    transform: translate(-50%, -50%);
+}
+
+.detected-foods-list {
+    list-style: none;
+    padding: 0;
+    margin: var(--spacing-md) 0;
+}
+
+.detected-foods-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--input-border);
+}
+
+.detected-foods-list .food-name {
+    font-weight: 600;
+}
+
+.detected-foods-list .food-amount {
+    color: var(--text-secondary);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+@media (max-width: 600px) {
+    .meal-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .fitness-summary {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+    
+    .fitness-goal-visual {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .macro-summary {
+        width: 100%;
+    }
+    
+    .favorites-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Estilos para la página de resultados */
+.results-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.result-card {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+.result-icon {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.result-icon.goal-icon {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--energy-color) 100%);
+}
+
+.result-content {
+    flex: 1;
+}
+
+.result-content h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-xs);
+}
+
+.result-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 2px;
+}
+
+.result-description {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Tarjetas de macros */
+.macro-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.macro-detail-card {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    transition: all 0.3s ease;
+}
+
+.macro-detail-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+}
+
+.macro-detail-card.protein {
+    border-left: 4px solid var(--protein-color);
+}
+
+.macro-detail-card.carbs {
+    border-left: 4px solid var(--carbs-color);
+}
+
+.macro-detail-card.fat {
+    border-left: 4px solid var(--fat-color);
+}
+
+.macro-detail-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.macro-detail-header h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.macro-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.protein .macro-icon {
+    background-color: var(--protein-color);
+}
+
+.carbs .macro-icon {
+    background-color: var(--carbs-color);
+}
+
+.fat .macro-icon {
+    background-color: var(--fat-color);
+}
+
+.macro-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.macro-percent {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.macro-bar-container {
+    height: 6px;
+    background-color: var(--progress-background);
+    border-radius: var(--border-radius-full);
+    overflow: hidden;
+    margin-top: var(--spacing-sm);
+}
+
+.macro-bar {
+    height: 100%;
+    border-radius: var(--border-radius-full);
+}
+
+.macro-bar.protein {
+    background-color: var(--protein-color);
+}
+
+.macro-bar.carbs {
+    background-color: var(--carbs-color);
+}
+
+.macro-bar.fat {
+    background-color: var(--fat-color);
+}
+
+/* Animaciones para los elementos de resultados */
+.result-card, .macro-detail-card {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+}
+
+.result-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.result-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.result-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.macro-detail-card:nth-child(1) {
+    animation-delay: 0.4s;
+}
+
+.macro-detail-card:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.macro-detail-card:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 } 

@@ -1,10 +1,49 @@
 // Módulo para gestionar eventos y listeners
 
-import { selectPortion, addQuickFood, handlePhotoUpload, resetPhotoUpload, analyzePhotoWithAI, searchFoods, addSelectedFood, updateNutritionPreview } from './food-tracking.js';
-import { openGoalModal, closeGoalModal, closeMealOptionsModal, closeAIAnalysisModal, openMealOptionsModal, confirmAIFood } from './modals.js';
-import { saveGoals, calculateRecommendedGoals, selectedFood } from './data.js';
-import { switchTab, debounce, showToast } from '../utils/ui-helpers.js';
+import { 
+    selectPortion, 
+    addQuickFood, 
+    handlePhotoUpload, 
+    resetPhotoUpload, 
+    analyzePhotoWithAI, 
+    searchFoods, 
+    addSelectedFood, 
+    updateNutritionPreview 
+} from './food-tracking.js';
+
+import { 
+    openGoalModal, 
+    closeGoalModal, 
+    closeMealOptionsModal, 
+    closeAIAnalysisModal, 
+    openMealOptionsModal, 
+    confirmAIFood, 
+    openNutritionPlanModal, 
+    closeNutritionPlanModal, 
+    generatePlan, 
+    openProgressAnalysisModal, 
+    closeProgressAnalysisModal 
+} from './modals.js';
+
+import { 
+    saveGoals, 
+    calculateRecommendedGoals, 
+    userGoals,
+    userProfile,
+    selectedFood, 
+    setSelectedFood 
+} from './data.js';
+
+import { 
+    switchTab, 
+    debounce, 
+    showToast 
+} from '../utils/ui-helpers.js';
+
 import { updateUI } from './ui.js';
+import { analyzeFoodPhoto, addDetectedFoodsToJournal } from './food-recognition.js';
+import { calculateGoals } from './calculator.js';
+import { updateCalculatorResults } from './ui.js';
 
 /**
  * Sets up all event listeners for the app.
@@ -18,8 +57,87 @@ export function setupEventListeners() {
     
     editGoalsButton.addEventListener('click', openGoalModal);
     closeGoalModalButton.addEventListener('click', closeGoalModal);
-    calculateGoalsButton.addEventListener('click', calculateRecommendedGoals);
+    calculateGoalsButton.addEventListener('click', async function() {
+        console.log('Botón de calcular en el modal pulsado');
+        // Obtener valores del formulario
+        const userSex = document.getElementById('userSex').value;
+        const userAge = parseInt(document.getElementById('userAge').value);
+        const userWeight = parseFloat(document.getElementById('userWeight').value);
+        const userHeight = parseInt(document.getElementById('userHeight').value);
+        const userActivityLevel = parseFloat(document.getElementById('userActivityLevel').value);
+        const userGoal = document.getElementById('userGoal').value;
+        
+        if (!userAge || !userWeight || !userHeight) {
+            showToast('Por favor, completa todos los campos.', 'error');
+            return;
+        }
+        
+        try {
+            // Mostrar indicador de carga
+            document.getElementById('goalModalLoading').style.display = 'flex';
+            
+            // Asegurarnos de que tenemos un indicador de IA
+            let aiIndicator = document.getElementById('aiCalculationIndicator');
+            if (!aiIndicator) {
+                // Crear el indicador si no existe
+                aiIndicator = document.createElement('div');
+                aiIndicator.id = 'aiCalculationIndicator';
+                aiIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                aiIndicator.style.color = '#fff';
+                aiIndicator.style.padding = '10px 15px';
+                aiIndicator.style.borderRadius = '5px';
+                aiIndicator.style.position = 'fixed';
+                aiIndicator.style.bottom = '20px';
+                aiIndicator.style.right = '20px';
+                aiIndicator.style.zIndex = '9999';
+                aiIndicator.style.fontWeight = 'bold';
+                aiIndicator.style.display = 'none';
+                document.body.appendChild(aiIndicator);
+            }
+            
+            // Mostrar que estamos usando IA
+            showToast('Calculando con IA. Esto puede tomar unos segundos...', 'info');
+            
+            console.log('Llamando a calculateRecommendedGoals desde el modal');
+            const recommendations = await calculateRecommendedGoals({
+                gender: userSex,
+                age: userAge,
+                weight: userWeight,
+                height: userHeight,
+                activity: userActivityLevel,
+                goal: userGoal
+            });
+            
+            console.log('Recomendaciones recibidas:', recommendations);
+            
+            // Actualizar valores en el formulario
+            document.getElementById('goalKcal').value = recommendations.goalCalories;
+            document.getElementById('goalProtein').value = recommendations.protein;
+            document.getElementById('goalCarb').value = recommendations.carbs;
+            document.getElementById('goalFat').value = recommendations.fat;
+            
+            // Mostrar mensaje según la fuente
+            showToast(`Objetivos calculados con ${recommendations.source}. Puedes ajustarlos si lo deseas.`, 'success');
+        } catch (error) {
+            console.error('Error al calcular objetivos:', error);
+            showToast('Error al calcular objetivos: ' + error.message, 'error');
+        } finally {
+            // Ocultar indicador de carga
+            document.getElementById('goalModalLoading').style.display = 'none';
+        }
+    });
     saveGoalsButton.addEventListener('click', saveGoals);
+    
+    // Botón para regresar a la calculadora desde la pantalla de seguimiento
+    const returnToCalculatorButton = document.getElementById('returnToCalculatorBtn');
+    if (returnToCalculatorButton) {
+        returnToCalculatorButton.addEventListener('click', function() {
+            if (window.updateAppVisualState) {
+                window.updateAppVisualState('calculator');
+                showToast('Volviendo a la calculadora', 'info');
+            }
+        });
+    }
     
     // Analysis Modal
     const closeAnalysisModalButton = document.getElementById('closeAnalysisModal');
@@ -55,97 +173,148 @@ export function setupEventListeners() {
     console.log('Inicializando manejador del formulario, calculatorForm:', calculatorForm, 'calculateButton:', calculateButton);
     
     if (calculateButton) {
-        calculateButton.addEventListener('click', function() {
-            console.log('¡Botón de cálculo pulsado!');
-            
-            // Get form values
+        calculateButton.addEventListener('click', async function() {
+            // Recoger datos básicos del formulario
             const gender = document.getElementById('gender').value;
             const age = parseInt(document.getElementById('age').value);
             const weight = parseFloat(document.getElementById('weight').value);
-            const height = parseInt(document.getElementById('height').value);
-            const activity = parseFloat(document.getElementById('activity').value);
-            const goal = document.getElementById('goal').value;
+            const height = parseInt(document.getElementById('height').value, 10);
+            const activityLevelElement = document.getElementById('activity-level');
             
-            console.log('Valores recogidos:', { gender, age, weight, height, activity, goal });
+            // Añadir comprobación de nulidad
+            if (!activityLevelElement) {
+                console.error('[EVENTS.JS] Error: No se encontró el elemento con id "activity-level". Verifica el HTML.');
+                showToast('ERROR INTERNO: FALTA EL SELECTOR DE NIVEL DE ACTIVIDAD.', 'error');
+                return; // Salir temprano si el elemento no existe
+            }
             
-            // Validate input
-            if (!age || !weight || !height) {
-                showToast('Por favor, completa todos los campos.', 'error');
+            const activity = parseFloat(activityLevelElement.options[activityLevelElement.selectedIndex].value);
+            
+            // Obtener el valor del objetivo seleccionado (ahora es un radio button)
+            const goalRadios = document.querySelectorAll('input[name="goal"]');
+            let goal = null;
+            for (const radio of goalRadios) {
+                if (radio.checked) {
+                    goal = radio.value;
+                    break;
+                }
+            }
+
+            // Validar datos básicos obligatorios
+            if (!gender || isNaN(age) || isNaN(weight) || isNaN(height) || isNaN(activity) || !goal) {
+                showToast('Por favor, completa todos los campos requeridos.', 'warning');
                 return;
             }
+
+            // Recoger datos de composición corporal (opcionales)
+            const bodyfat = parseFloat(document.getElementById('bodyfat')?.value || 0);
             
-            // Calculate BMR using Mifflin-St Jeor formula
-            let bmr;
-            if (gender === 'male') {
-                bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
-            } else {
-                bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+            // Recoger datos de trabajo
+            const jobTypeEl = document.getElementById('job-type');
+            const jobType = jobTypeEl ? jobTypeEl.value : 'sedentary';
+            
+            // Recoger datos de entrenamiento (opcionales)
+            const trainingTypeEl = document.getElementById('training-type');
+            const trainingType = trainingTypeEl ? trainingTypeEl.value : 'none';
+            const trainingFrequency = parseInt(document.getElementById('training-frequency')?.value || 0);
+            
+            // Recoger preferencias dietéticas
+            const dietTypeEl = document.getElementById('diet-type');
+            const dietType = dietTypeEl ? dietTypeEl.value : 'standard';
+            
+            const mealsPerDayEl = document.getElementById('meals-per-day');
+            const mealsPerDay = mealsPerDayEl ? mealsPerDayEl.value : '3';
+
+            // Construir el perfil completo
+            const currentProfileData = { 
+                gender, 
+                age, 
+                weight, 
+                height, 
+                activity, 
+                goal,
+                // Datos adicionales
+                bodyfat: bodyfat || null,
+                jobType,
+                trainingType,
+                trainingFrequency,
+                dietType,
+                mealsPerDay
+            };
+
+            // Mostrar indicador de carga
+            const loadingIndicator = document.getElementById('calculationLoadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'flex';
             }
             
-            // Calculate maintenance calories
-            const maintenance = Math.round(bmr * activity);
-            
-            // Calculate goal calories
-            let goalCalories = maintenance;
-            if (goal === 'lose') {
-                goalCalories = Math.round(maintenance * 0.8);
-            } else if (goal === 'gain') {
-                goalCalories = Math.round(maintenance * 1.15);
-            }
-            
-            console.log('Cálculos:', { bmr, maintenance, goalCalories });
-            
-            // Calculate macros
-            const protein = Math.round(weight * 1.8); // 1.8g per kg bodyweight
-            const proteinCalories = protein * 4;
-            const fatCalories = goalCalories * 0.25; // 25% from fat
-            const fat = Math.round(fatCalories / 9);
-            const carbsCalories = goalCalories - proteinCalories - fatCalories;
-            const carbs = Math.round(carbsCalories / 4);
-            
-            // Update the percentages
-            const proteinPercent = Math.round((proteinCalories / goalCalories) * 100);
-            const carbsPercent = Math.round((carbsCalories / goalCalories) * 100);
-            const fatPercent = Math.round((fatCalories / goalCalories) * 100);
-            
-            // Update UI
-            console.log('Actualizando UI con resultados');
             try {
-                document.getElementById('bmr-value').textContent = Math.round(bmr);
-                document.getElementById('maintenance-value').textContent = maintenance;
-                document.getElementById('goal-value').textContent = goalCalories;
+                // Calcular objetivos con IA usando el perfil completo
+                showToast('Calculando con IA. Esto puede tomar unos segundos...', 'info');
                 
-                // Update macros
-                document.getElementById('protein-percent').textContent = proteinPercent;
-                document.getElementById('carbs-percent').textContent = carbsPercent;
-                document.getElementById('fat-percent').textContent = fatPercent;
+                // Calcular recomendaciones
+                const userGoalsData = await calculateRecommendedGoals(currentProfileData);
                 
-                document.getElementById('protein-grams').textContent = protein;
-                document.getElementById('carbs-grams').textContent = carbs;
-                document.getElementById('fat-grams').textContent = fat;
+                // Actualizar perfil del usuario
+                Object.assign(userProfile, {
+                    gender,
+                    age,
+                    weight,
+                    height,
+                    activityLevel: activity,
+                    goal,
+                    bodyfat,
+                    jobType,
+                    trainingType,
+                    trainingFrequency,
+                    dietType,
+                    mealsPerDay
+                });
                 
-                // Update macro bars
-                document.getElementById('protein-bar').style.width = `${proteinPercent}%`;
-                document.getElementById('protein-bar').textContent = `${proteinPercent}%`;
+                // Guardar perfil en localStorage
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
                 
-                document.getElementById('carbs-bar').style.width = `${carbsPercent}%`;
-                document.getElementById('carbs-bar').textContent = `${carbsPercent}%`;
+                // Actualizar UI con los resultados
+                updateCalculatorResults(userGoalsData);
                 
-                document.getElementById('fat-bar').style.width = `${fatPercent}%`;
-                document.getElementById('fat-bar').textContent = `${fatPercent}%`;
-                
-                // Usar la función global para cambiar el estado visual
-                if (window.updateAppVisualState) {
-                    window.updateAppVisualState('results');
-                } else {
-                    // Fallback por si la función no está disponible
-                    document.getElementById('calculator-card').style.display = 'none';
-                    document.getElementById('results-card').style.display = 'block';
+                // Ocultar indicador de carga
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
                 }
                 
-                console.log('Resultados mostrados correctamente');
+                // Registrar en historial
+                const calculation = {
+                    date: new Date().toISOString(),
+                    gender,
+                    age,
+                    weight,
+                    height,
+                    activity,
+                    goal,
+                    ...userGoalsData
+                };
+                
+                // Guardar en localStorage
+                const history = JSON.parse(localStorage.getItem('calculationHistory') || '[]');
+                history.push(calculation);
+                localStorage.setItem('calculationHistory', JSON.stringify(history));
+                
+                // Mostrar panel de resultados
+                switchToResults();
+                
+                // Notificar al usuario del éxito
+                showToast(`SUCCESS: Objetivos calculados con ${userGoalsData.source}. Haz clic en "Guardar Resultados" para confirmar.`, 'success');
+                
             } catch (error) {
-                console.error('Error al actualizar UI:', error);
+                console.error('Error al calcular objetivos:', error);
+                
+                // Ocultar indicador de carga
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+                
+                // Mostrar mensaje de error
+                showToast('Error al calcular objetivos: ' + error.message, 'error');
             }
         });
     } else {
@@ -171,7 +340,20 @@ export function setupEventListeners() {
             const bmr = document.getElementById('bmr-value').textContent;
             const maintenance = document.getElementById('maintenance-value').textContent;
             const goalCalories = document.getElementById('goal-value').textContent;
+            const proteinGrams = parseInt(document.getElementById('protein-grams').textContent);
+            const carbsGrams = parseInt(document.getElementById('carbs-grams').textContent);
+            const fatGrams = parseInt(document.getElementById('fat-grams').textContent);
             
+            // Actualizar userGoals sin reasignar la variable completa
+            userGoals.kcal = parseInt(goalCalories);
+            userGoals.protein = proteinGrams;
+            userGoals.carb = carbsGrams;
+            userGoals.fat = fatGrams;
+            
+            // Guardar objetivos en localStorage
+            localStorage.setItem('userGoals', JSON.stringify(userGoals));
+            
+            // Guardar en historial
             const calculation = {
                 id: Date.now(),
                 date: new Date().toLocaleDateString(),
@@ -179,9 +361,9 @@ export function setupEventListeners() {
                 maintenance: parseInt(maintenance),
                 goal: parseInt(goalCalories),
                 macros: {
-                    protein: parseInt(document.getElementById('protein-grams').textContent),
-                    carbs: parseInt(document.getElementById('carbs-grams').textContent),
-                    fat: parseInt(document.getElementById('fat-grams').textContent)
+                    protein: proteinGrams,
+                    carbs: carbsGrams,
+                    fat: fatGrams
                 }
             };
             
@@ -190,15 +372,29 @@ export function setupEventListeners() {
             history.push(calculation);
             localStorage.setItem('calculationHistory', JSON.stringify(history));
             
-            showToast('Cálculo guardado en el historial.', 'success');
+            showToast('Cálculo guardado como objetivo y añadido al historial.', 'success');
             
             // Usar la función global para cambiar el estado visual
             if (window.updateAppVisualState) {
+                // Primero cambiamos a 'tracking' para asegurar que los elementos existan
                 window.updateAppVisualState('tracking');
+                
+                // Esperamos un momento para que el DOM se actualice antes de actualizar la UI
+                setTimeout(() => {
+                    try {
+                        console.log('Actualizando UI después de guardar resultados');
+                        updateUI();
+                    } catch (error) {
+                        console.error('Error al actualizar UI:', error);
+                    }
+                }, 100);
             } else {
                 // Fallback por si la función no está disponible
                 document.getElementById('history-card').style.display = 'block';
                 document.getElementById('tracking-panel').style.display = 'block';
+                
+                // Intentar actualizar la UI después de que los elementos sean visibles
+                setTimeout(() => updateUI(), 100);
             }
         });
     }
@@ -236,47 +432,55 @@ export function setupEventListeners() {
         });
     });
     
-    // Botón principal para añadir alimentos
+    // Tracking Panel buttons
     const addFoodButton = document.getElementById('add-food-button');
-    if (addFoodButton) {
-        addFoodButton.addEventListener('click', () => {
-            const foodTabs = document.getElementById('food-tabs');
-            if (foodTabs) {
-                // Asegurarnos de que el tab rápido esté activo
-                const quickTab = document.querySelector('.tab-button[data-tab="quick"]');
-                if (quickTab) {
-                    const allTabs = document.querySelectorAll('.tab-button');
-                    allTabs.forEach(tab => tab.classList.remove('active'));
-                    quickTab.classList.add('active');
-                    
-                    const allContents = document.querySelectorAll('.tab-content');
-                    allContents.forEach(content => content.classList.remove('active'));
-                    const quickContent = document.getElementById('quick');
-                    if (quickContent) quickContent.classList.add('active');
-                }
-                
-                // Enfocar automáticamente el campo de entrada
-                const quickFoodInput = document.getElementById('quickFoodInput');
-                if (quickFoodInput) {
-                    setTimeout(() => quickFoodInput.focus(), 100);
-                }
-                
-                // Asegurar que se muestre el panel de pestañas
-                foodTabs.style.display = 'block';
-            }
-        });
-    }
-    
-    // Botón para cerrar el panel de pestañas
+    const addFavoritesButton = document.getElementById('add-favorites-button');
+    const addManualButton = document.getElementById('add-manual-button');
+    const addBarcodeButton = document.getElementById('add-barcode-button');
     const closeFoodTabsButton = document.getElementById('close-food-tabs');
-    if (closeFoodTabsButton) {
-        closeFoodTabsButton.addEventListener('click', () => {
-            const foodTabs = document.getElementById('food-tabs');
-            if (foodTabs) {
-                foodTabs.style.display = 'none';
-            }
-        });
-    }
+    
+    addFoodButton.addEventListener('click', function() {
+        if (window.updateAppVisualState) {
+            window.updateAppVisualState('tracking');
+        }
+        document.getElementById('food-tabs').style.display = 'block';
+        // Ir directamente a la pestaña de foto
+        switchTab('photo');
+        
+        // Preparar la zona de subida
+        resetPhotoUpload();
+    });
+    
+    addFavoritesButton.addEventListener('click', function() {
+        if (window.updateAppVisualState) {
+            window.updateAppVisualState('tracking');
+        }
+        document.getElementById('food-tabs').style.display = 'block';
+        // Ir directamente a la pestaña de favoritos
+        switchTab('favorites');
+    });
+    
+    addManualButton.addEventListener('click', function() {
+        if (window.updateAppVisualState) {
+            window.updateAppVisualState('tracking');
+        }
+        document.getElementById('food-tabs').style.display = 'block';
+        // Ir directamente a la pestaña manual
+        switchTab('quick');
+    });
+    
+    addBarcodeButton.addEventListener('click', function() {
+        if (window.updateAppVisualState) {
+            window.updateAppVisualState('tracking');
+        }
+        document.getElementById('food-tabs').style.display = 'block';
+        // Ir directamente a la pestaña de escaneo
+        switchTab('scan');
+    });
+    
+    closeFoodTabsButton.addEventListener('click', function() {
+        document.getElementById('food-tabs').style.display = 'none';
+    });
     
     // Quick Add
     const addQuickFoodButton = document.getElementById('addQuickFood');
@@ -348,7 +552,7 @@ export function setupEventListeners() {
     backToSearchButton.addEventListener('click', () => {
         searchDetails.classList.add('hidden');
         searchResults.classList.remove('hidden');
-        window.selectedFood = null;
+        setSelectedFood(null);
     });
     
     // Quantity buttons
@@ -370,19 +574,113 @@ export function setupEventListeners() {
             input.value = value;
             
             // Update preview if food selected
-            if (window.selectedFood) {
-                updateNutritionPreview(window.selectedFood, value);
+            if (selectedFood) {
+                updateNutritionPreview(selectedFood, value);
             }
         });
     });
     
     foodQuantityInput.addEventListener('input', () => {
-        if (window.selectedFood) {
+        if (selectedFood) {
             const quantity = parseInt(foodQuantityInput.value) || 100;
-            updateNutritionPreview(window.selectedFood, quantity);
+            updateNutritionPreview(selectedFood, quantity);
         }
     });
     
     const addSearchedFoodButton = document.getElementById('addSearchedFood');
     addSearchedFoodButton.addEventListener('click', addSelectedFood);
+    
+    // Configurar event listeners para la IA de nutrición
+    setupAINutritionEventListeners();
+}
+
+/**
+ * Configura los event listeners relacionados con IA y análisis nutricional
+ */
+function setupAINutritionEventListeners() {
+    // Botones para abrir los modales de IA
+    const nutritionPlanBtn = document.getElementById('nutritionPlanBtn');
+    const progressAnalysisBtn = document.getElementById('progressAnalysisBtn');
+    
+    // Botones dentro del modal de plan nutricional
+    const generatePlanBtn = document.getElementById('generatePlanBtn');
+    const closeNutritionPlanBtn = document.getElementById('closeNutritionPlanBtn');
+    const backToPlanFormBtn = document.getElementById('backToPlanFormBtn');
+    
+    // Botones dentro del modal de análisis de progreso
+    const closeProgressAnalysisBtn = document.getElementById('closeProgressAnalysisBtn');
+    
+    // Event listeners para abrir modales de IA
+    if (nutritionPlanBtn) {
+        nutritionPlanBtn.addEventListener('click', () => {
+            openNutritionPlanModal();
+        });
+    }
+    
+    if (progressAnalysisBtn) {
+        progressAnalysisBtn.addEventListener('click', () => {
+            openProgressAnalysisModal();
+        });
+    }
+    
+    // Event listeners para el modal de plan nutricional
+    if (generatePlanBtn) {
+        generatePlanBtn.addEventListener('click', () => {
+            generatePlan();
+        });
+    }
+    
+    if (closeNutritionPlanBtn) {
+        closeNutritionPlanBtn.addEventListener('click', () => {
+            closeNutritionPlanModal();
+        });
+    }
+    
+    if (backToPlanFormBtn) {
+        backToPlanFormBtn.addEventListener('click', () => {
+            const planForm = document.getElementById('planForm');
+            const planResults = document.getElementById('planResults');
+            
+            if (planForm) planForm.style.display = 'block';
+            if (planResults) planResults.style.display = 'none';
+        });
+    }
+    
+    // Event listeners para el modal de análisis de progreso
+    if (closeProgressAnalysisBtn) {
+        closeProgressAnalysisBtn.addEventListener('click', () => {
+            closeProgressAnalysisModal();
+        });
+    }
+    
+    // Configurar eventos para análisis con IA de alimentos
+    const analyzePhotoBtn = document.getElementById('analyzePhotoBtn');
+    const confirmAIFoodBtn = document.getElementById('confirmAIFood');
+    const closeAIAnalysisBtn = document.getElementById('closeAIAnalysisBtn');
+    
+    if (analyzePhotoBtn) {
+        analyzePhotoBtn.addEventListener('click', () => {
+            analyzePhotoWithAI();
+        });
+    }
+    
+    if (confirmAIFoodBtn) {
+        confirmAIFoodBtn.addEventListener('click', () => {
+            confirmAIFood();
+        });
+    }
+    
+    if (closeAIAnalysisBtn) {
+        closeAIAnalysisBtn.addEventListener('click', () => {
+            closeAIAnalysisModal();
+        });
+    }
+}
+
+/**
+ * Cambia la vista a los resultados
+ */
+function switchToResults() {
+    document.getElementById('results-card').style.display = 'block';
+    document.getElementById('calculator-card').style.display = 'none';
 } 

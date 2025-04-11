@@ -47,6 +47,7 @@
 .modal-body {
     padding: var(--spacing-lg);
     overflow-y: auto;
+    max-height: 60vh;
 }
 
 .modal-footer {
@@ -111,4 +112,370 @@
     transform: none;
     left: auto;
     bottom: auto;
+} 
+
+/* Estilos para el análisis de IA */
+.ai-result-image-container {
+    position: relative;
+    margin-bottom: var(--spacing-md);
+}
+
+.ai-result-image {
+    position: relative;
+    width: 100%;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
+}
+
+.ai-result-image img {
+    width: 100%;
+    display: block;
+    max-height: 250px;
+    object-fit: cover;
+}
+
+.ai-labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.ai-label {
+    position: absolute;
+    background-color: rgba(41, 182, 246, 0.8);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: fadeIn 0.5s ease;
+}
+
+.ai-label::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: rgba(41, 182, 246, 0.8);
+    border-radius: 50%;
+    top: 100%;
+    left: 10px;
+    transform: translateY(-50%);
+}
+
+.ai-confidence-indicator {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--spacing-md);
+}
+
+.ai-confidence-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.ai-confidence-bar {
+    height: 6px;
+    background-color: var(--progress-background);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.ai-confidence-fill {
+    height: 100%;
+    width: 92%;
+    background-color: var(--success-color);
+    border-radius: 3px;
+    animation: growWidth 1s ease;
+}
+
+.detected-foods-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 30vh;
+    overflow-y: auto;
+    margin-bottom: var(--spacing-md);
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+}
+
+.detected-food-item {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--input-border);
+    margin-bottom: 0;
+    animation: fadeIn 0.5s ease;
+}
+
+.detected-food-item:last-child {
+    border-bottom: none;
+}
+
+.food-name-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.food-name {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.food-portion {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background-color: var(--input-background);
+    padding: 2px 6px;
+    border-radius: 12px;
+}
+
+.food-macros {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: 5px;
+}
+
+.food-macro {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.food-macro.kcal {
+    background-color: var(--accent-light);
+}
+
+.food-macro.protein {
+    background-color: rgba(var(--protein-color-rgb), 0.2);
+}
+
+.food-macro.carbs {
+    background-color: rgba(var(--carbs-color-rgb), 0.2);
+}
+
+.food-macro.fat {
+    background-color: rgba(var(--fat-color-rgb), 0.2);
+}
+
+.confidence-bar {
+    height: 4px;
+    background-color: var(--progress-background);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+    position: relative;
+}
+
+.confidence-fill {
+    height: 100%;
+    background-color: var(--success-color);
+    border-radius: 2px;
+    animation: growWidth 0.8s ease;
+}
+
+.confidence-text {
+    position: absolute;
+    right: 0;
+    top: -18px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.ai-tip {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(to right, rgba(var(--protein-color-rgb), 0.1), rgba(var(--primary-color-rgb), 0.1));
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius);
+    margin-top: var(--spacing-md);
+}
+
+.ai-tip .material-symbols-rounded {
+    color: var(--primary-color);
+    margin-right: var(--spacing-sm);
+}
+
+.ai-tip p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.ai-tip strong {
+    color: var(--text-color);
+}
+
+.modal-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+}
+
+.modal-loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(var(--primary-color-rgb), 0.3);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--spacing-md);
+}
+
+.modal-loading p {
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+}
+
+.modal-loading small {
+    color: var(--text-secondary);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes growWidth {
+    from { width: 0; }
+}
+
+/* Ajustes para análisis de comida y área de scroll */
+.result-section {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Mejoras para responsive */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 80vh;
+    }
+    
+    .modal-body {
+        max-height: 65vh;
+        padding: var(--spacing-md);
+    }
+    
+    .detected-foods-list {
+        max-height: 35vh;
+    }
+    
+    .nutrition-summary {
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
+    
+    .nutrition-item {
+        flex: 0 0 45%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .modal-footer {
+        flex-wrap: wrap;
+    }
+    
+    .modal-footer button {
+        flex: 1 0 auto;
+        margin-top: var(--spacing-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.9rem;
+    }
+}
+
+/* Ajustes específicos para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .modal-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .ai-result-image img {
+        max-height: 180px;
+    }
+    
+    .food-macros {
+        flex-wrap: wrap;
+    }
+    
+    .food-macro {
+        flex: 1 0 45%;
+        margin-bottom: 4px;
+        font-size: 0.7rem;
+    }
+    
+    .ai-label {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+}
+
+.empty-list {
+    padding: var(--spacing-md);
+    color: var(--text-secondary);
+    text-align: center;
+    font-style: italic;
+}
+
+/* Estilo mejorado para el modal de análisis */
+#aiAnalysisModal .modal-content {
+    max-width: 650px;
+}
+
+#aiAnalysisModal .modal-body {
+    padding-bottom: var(--spacing-sm);
+}
+
+#aiAnalysisModal .modal-footer {
+    padding-top: var(--spacing-sm);
+}
+
+/* Señales visuales para indicar que hay scroll disponible */
+.detected-foods-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.detected-foods-list::-webkit-scrollbar-track {
+    background: var(--input-background);
+    border-radius: 3px;
+}
+
+.detected-foods-list::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 3px;
+}
+
+.detected-foods-list::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(transparent, rgba(var(--primary-color-rgb), 0.05));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.detected-foods-list.can-scroll::after {
+    opacity: 1;
 } 
