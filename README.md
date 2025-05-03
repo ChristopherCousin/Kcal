@@ -1,91 +1,117 @@
-# Kcal - Seguimiento Nutricional
+# Kcal - Seguimiento Nutricional con IA
 
-Aplicación web progresiva (PWA) para seguimiento nutricional diario mediante fotografías, con enfoque en la experiencia de usuario móvil y simplicidad.
+Aplicación web progresiva (PWA) para seguimiento nutricional diario mediante análisis de fotografías con GPT-4o, optimizada para móviles.
 
-## Características
+## 🌟 Demo
+
+Accede a la versión en vivo: [https://christophercousin.github.io/calories-web](https://christophercousin.github.io/calories-web)
+
+![Vista previa de la aplicación](img/preview.jpg)
+
+## 🚀 Características
 
 - **Interfaz optimizada para móviles**: Diseño tipo app nativa con navegación inferior
-- **Entrada de alimentos con foto**: Análisis automático de fotos de comida mediante GPT-4 Vision
-- **Seguimiento de macronutrientes**: Proteínas, carbohidratos y grasas
-- **Visualización intuitiva**: Anillos de progreso para seguimiento diario
+- **Análisis automático de fotos**: Identificación de alimentos y cálculo nutricional mediante GPT-4o
+- **Seguimiento visual**: Progreso diario de calorías y macronutrientes con visualizaciones intuitivas
 - **Diseño PWA**: Instalable como aplicación en dispositivos móviles
-- **Funcionamiento offline**: Gracias a la implementación de Service Workers
+- **Funcionamiento offline**: Almacenamiento local y sincronización inteligente
 
-## Estructura del Proyecto
+## 🏗️ Estructura del Proyecto
 
 ```
 Kcal/
 ├── index.html                # Documento HTML principal
 ├── manifest.json             # Configuración para PWA
 ├── service-worker.js         # Service Worker para caché y offline
-├── css/                      # Carpeta de estilos CSS
+├── css/                      # Estilos CSS
 │   ├── main.css              # Importaciones de todos los estilos
-│   ├── styles.css            # Estilos globales
 │   ├── base/                 # Estilos base (variables, reset)
 │   ├── components/           # Componentes de UI
 │   │   ├── mobile-nav.css    # Navegación inferior móvil
-│   │   ├── mobile.css        # Optimizaciones móviles
+│   │   ├── entries.css       # Diseño de entradas del diario
 │   │   └── ...
 │   └── layout/               # Estilos de layout
-├── js/                       # Carpeta de archivos JavaScript
+├── js/                       # JavaScript
 │   ├── main.js               # Punto de entrada principal
 │   ├── modules/              # Módulos funcionales
-│   │   ├── app.js            # Controlador principal de la aplicación
+│   │   ├── app.js            # Controlador principal 
 │   │   ├── mobile-nav.js     # Navegación móvil
-│   │   ├── data.js           # Gestión de datos
+│   │   ├── photo-handler.js  # Gestión de fotos y análisis
 │   │   └── ...
 │   ├── services/             # Servicios externos
+│   │   ├── openai-service.js # Comunicación con API de OpenAI
+│   │   └── ...
 │   └── utils/                # Utilidades
 └── img/                      # Imágenes e iconos
     ├── icons/                # Iconos para PWA
     └── ...
 ```
 
-## Mejoras Implementadas
+## 🧠 Integración con GPT-4o
 
-1. **Transformación a PWA**:
-   - Manifest para instalación en dispositivos
-   - Service Worker para funcionamiento offline
-   - Iconos para diferentes tamaños de pantalla
+La aplicación utiliza GPT-4o para dos funcionalidades principales:
 
-2. **Experiencia Móvil Optimizada**:
-   - Navegación inferior estilo app nativa
-   - Botón de cámara prominente para rápido acceso
-   - UI adaptada para uso con una mano
-   - Rendimiento optimizado para dispositivos móviles
+1. **Análisis de fotografías de comida**:
+   - Identificación automática de alimentos
+   - Estimación de calorías y macronutrientes
+   - Recomendaciones personalizadas
 
-3. **Flujo Simplificado**:
-   - Enfoque en la captura de fotos de comida
-   - Priorización del seguimiento diario sobre la calculadora
-   - Reducción de pasos para registrar alimentos
+2. **Cálculos nutricionales personalizados**:
+   - Estimación de requerimientos calóricos
+   - Distribución óptima de macronutrientes según objetivos
+   - Sugerencias adaptadas al perfil del usuario
 
-## Cómo Usar
-
-1. Abre la aplicación en un navegador móvil (Chrome recomendado)
-2. Si deseas instalarla, usa la opción "Añadir a pantalla de inicio"
-3. Configura tus objetivos nutricionales
-4. Usa el botón de cámara para tomar fotos de tus comidas
-5. Visualiza tu progreso diario en la pantalla principal
-
-## Desarrollo
+## 💻 Desarrollo Local
 
 Para ejecutar el proyecto en modo desarrollo:
 
-1. Clona el repositorio
-2. Abre el directorio del proyecto
-3. Inicia un servidor local (por ejemplo: `npx http-server` o `python -m http.server`)
-4. Accede a `http://localhost:8000` en tu navegador
+1. Clona el repositorio:
+   ```
+   git clone https://github.com/christophercousin/calories-web.git
+   cd calories-web/Kcal
+   ```
 
-## Próximas Mejoras
+2. Inicia un servidor local:
+   ```
+   # Con Node.js
+   npx http-server
+   
+   # Con Python
+   python -m http.server
+   ```
 
-- Integración completa con GPT-4 Vision para análisis de alimentos
-- Visualización mejorada del historial con imágenes de comidas
-- Personalización de objetivos basada en patrones de alimentación
-- Sincronización con la nube
+3. Accede a `http://localhost:8000` en tu navegador
 
-## Dependencias
+## 🔧 Configuración de API
 
-La aplicación usa JavaScript vanilla, CSS y HTML, con las siguientes características avanzadas:
-- Service Workers para funcionalidad offline
-- Web Storage API para almacenamiento local
-- (Pendiente) Integración con OpenAI API para análisis de imágenes 
+Para utilizar la funcionalidad de análisis de imágenes, necesitas configurar tu clave API de OpenAI:
+
+1. Crea un archivo `js/utils/api-config.js` con el siguiente contenido:
+   ```javascript
+   // Configuración de APIs
+   export const OPENAI_CONFIG = {
+     API_KEY: 'tu-api-key-aquí'
+   };
+   
+   export const AI_PROVIDER = 'OPENAI';
+   ```
+
+2. Reemplaza `'tu-api-key-aquí'` con tu clave API de OpenAI
+
+## 📱 Uso como PWA
+
+La aplicación puede instalarse como una PWA en dispositivos móviles:
+
+1. Accede a la URL en un navegador compatible (Chrome, Safari, etc.)
+2. En Chrome: toca en el menú (⋮) y selecciona "Añadir a pantalla de inicio"
+3. En Safari: toca en el icono de compartir y selecciona "Añadir a pantalla de inicio"
+
+## 📚 Recursos y Documentación
+
+- [Documentación de OpenAI API](https://platform.openai.com/docs/overview)
+- [MDN Web Docs - PWA](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+- [Service Workers API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
+
+## 📝 Licencia
+
+Este proyecto está licenciado bajo la licencia MIT - ver el archivo LICENSE para más detalles. 
