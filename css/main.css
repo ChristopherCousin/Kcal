@@ -16,5 +16,7 @@
 @import 'components/results.css';
 @import 'components/history.css';
 @import 'components/modals.css';
+@import 'components/mobile-nav.css';
+@import 'components/mobile.css';
 
 /* Add other component/utility modules as needed */ 

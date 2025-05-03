@@ -6,6 +6,7 @@ import { loadData } from './modules/data.js';
 import { showToast } from './utils/ui-helpers.js';
 import { GOOGLE_CLOUD_CONFIG, OPENAI_CONFIG, AI_PROVIDER } from './utils/api-config.js';
 import * as debug from './utils/debug.js'; // Importar el módulo de depuración
+import { initApp } from './modules/app.js'; // Importar nuevo módulo de aplicación
 
 console.error('MAIN.JS - IMPORTACIÓN DE MÓDULOS COMPLETADA');
 console.error('DEBUG MODULE LOADED:', debug);
@@ -50,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("[MAIN.JS] Esperando inicialización completa antes de cargar datos...");
     
     setTimeout(() => {
+        console.log("[MAIN.JS] Inicializando nueva versión con enfoque móvil...");
+        // Inicializar la nueva aplicación con enfoque móvil
+        initApp();
+        
         console.log("[MAIN.JS] Cargando datos desde localStorage...");
         // Cargar datos de localStorage (esto también maneja la redirección si hay objetivos)
         loadData();

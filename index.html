@@ -2,13 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kcal - Calculadora de calorías</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kcal - Seguimiento Nutricional</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#29b6f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
+    <!-- Registro del Service Worker -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registrado con éxito:', registration);
+                })
+                .catch(error => {
+                    console.log('Error al registrar el Service Worker:', error);
+                });
+        });
+    }
+    </script>
 </head>
 <body>
     <!-- Código para prevenir duplicación de elementos y resolver problemas de renderizado -->
@@ -893,6 +912,33 @@
             </div>
         </div>
     </div>
+
+    <!-- Navegación inferior estilo app móvil -->
+    <nav class="mobile-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active" data-page="tracking">
+                <span class="nav-icon material-symbols-rounded">home</span>
+                <span class="nav-label">Inicio</span>
+            </a>
+            <a href="#" class="nav-item" data-page="history">
+                <span class="nav-icon material-symbols-rounded">history</span>
+                <span class="nav-label">Historial</span>
+            </a>
+            <div class="nav-item">
+                <button id="cameraButton" class="camera-button">
+                    <span class="material-symbols-rounded camera-icon">add_a_photo</span>
+                </button>
+            </div>
+            <a href="#" class="nav-item" data-page="search">
+                <span class="nav-icon material-symbols-rounded">search</span>
+                <span class="nav-label">Buscar</span>
+            </a>
+            <a href="#" class="nav-item" data-page="profile">
+                <span class="nav-icon material-symbols-rounded">person</span>
+                <span class="nav-label">Perfil</span>
+            </a>
+        </div>
+    </nav>
 
     <!-- Script de depuración y corrección -->
     <script>
