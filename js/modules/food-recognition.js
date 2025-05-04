@@ -83,7 +83,11 @@ function updateFoodAnalysisUI(detectedFoods) {
     
     // Mostrar el proveedor de IA usado
     if (aiAnalysisProvider) {
-        aiAnalysisProvider.textContent = AI_PROVIDER === 'OPENAI' ? 'OpenAI Vision' : 'Google Cloud Vision';
+        if (AI_PROVIDER === 'SUPABASE') {
+            aiAnalysisProvider.textContent = 'Supabase + OpenAI';
+        } else {
+            aiAnalysisProvider.textContent = AI_PROVIDER === 'OPENAI' ? 'OpenAI Vision' : 'Google Cloud Vision';
+        }
     }
     
     if (!detectedFoods || detectedFoods.length === 0) {

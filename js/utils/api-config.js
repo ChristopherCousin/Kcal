@@ -9,19 +9,15 @@
  */
 
 // Selecciona qué API de IA usar para análisis de alimentos
-export const AI_PROVIDER = 'OPENAI'; // Opciones: 'GOOGLE_VISION', 'OPENAI', 'LOCAL'
+export const AI_PROVIDER = 'SUPABASE'; // Opciones: 'GOOGLE_VISION', 'OPENAI', 'LOCAL', 'SUPABASE'
 console.log('======= API PROVIDER CONFIGURADO: ' + AI_PROVIDER + ' =======');
 
 /**
- * Configuración para OpenAI (GPT-4)
- * 
- * INSTRUCCIONES PARA CONFIGURAR OPENAI:
- * 1. Crear una cuenta en OpenAI (https://platform.openai.com/)
- * 2. Generar una clave API en la sección "API Keys"
- * 3. Reemplazar el valor de API_KEY con tu clave
+ * Configuración para OpenAI (GPT-4) - YA NO SE USA DIRECTAMENTE
+ * Ahora todas las solicitudes a OpenAI pasan por Supabase Edge Functions
  */
 export const OPENAI_CONFIG = {
-    API_KEY: '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', // API key del usuario
+    API_KEY: 'TU_API_KEY_AQUI', // Ya no se usa directamente - Se almacena en Supabase
     API_ENDPOINT: 'https://api.openai.com/v1/chat/completions',
     MODEL: 'gpt-4o', // Modelo actual recomendado por OpenAI
     MAX_TOKENS: 1000
@@ -105,3 +101,13 @@ export const NUTRITION_AI_SERVER = {
     URL: 'https://tu-servidor.com/api/calculate-nutrition',
     // Si está deshabilitado, se usará el cálculo local como fallback
 }; 
+
+// Configuración para servicios API
+
+// Configuración de Supabase
+export const SUPABASE_CONFIG = {
+    PROJECT_URL: 'https://nmxcjhadpequkuuutepa.supabase.co',
+    API_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5teGNqaGFkcGVxdWt1dXV0ZXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyOTExOTgsImV4cCI6MjA2MTg2NzE5OH0.cGZO0mDjDbUP9fd0mKGd_d6AHlfhB8EPRfgJX9v_m04'
+};
+
+// Añadir aquí otras configuraciones API si es necesario 

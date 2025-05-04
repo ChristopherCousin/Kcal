@@ -1,15 +1,15 @@
-// Servicio para comunicación con OpenAI API
-import { OPENAI_CONFIG, AI_PROVIDER } from '../utils/api-config.js';
+// Servicio para comunicación con OpenAI API a través de Supabase
+import { SUPABASE_CONFIG } from '../utils/api-config.js';
 import { showToast } from '../utils/ui-helpers.js';
 
 /**
- * Analiza una imagen de comida utilizando GPT-4o
+ * Analiza una imagen de comida utilizando GPT-4o a través de Supabase
  * @param {string} imageBase64 - Imagen en formato base64
  * @returns {Promise<Object>} - Resultado del análisis
  */
 export async function analyzeFood(imageBase64) {
-    // Verificar si está configurado para usar OpenAI
-    if (AI_PROVIDER !== 'OPENAI' || OPENAI_CONFIG.API_KEY === 'TU_API_KEY_AQUI') {
+    // Verificar si está configurada la conexión a Supabase
+    if (!SUPABASE_CONFIG.PROJECT_URL || !SUPABASE_CONFIG.API_KEY) {
         // Si no está configurado, simular el análisis para desarrollo
         console.log('API no configurada, usando simulación de análisis');
         return simulateFoodAnalysis();
@@ -18,45 +18,26 @@ export async function analyzeFood(imageBase64) {
     try {
         const prompt = createFoodAnalysisPrompt();
         
-        // Preparar la solicitud para OpenAI
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Preparar la solicitud a través de Supabase
+        const response = await fetch(`${SUPABASE_CONFIG.PROJECT_URL}/functions/v1/analyze-food`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_CONFIG.API_KEY}`
+                'Authorization': `Bearer ${SUPABASE_CONFIG.API_KEY}`
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'Eres un experto en nutrición que analiza fotos de comida para calcular calorías y macronutrientes.'
-                    },
-                    {
-                        role: 'user',
-                        content: [
-                            { type: 'text', text: prompt },
-                            { 
-                                type: 'image_url', 
-                                image_url: { 
-                                    url: `data:image/jpeg;base64,${imageBase64}` 
-                                } 
-                            }
-                        ]
-                    }
-                ],
-                max_tokens: 800,
-                temperature: 0.2
+                image: imageBase64,
+                prompt: prompt
             })
         });
         
-        const result = await response.json();
-        
-        if (result.error) {
-            throw new Error(result.error.message);
+        if (!response.ok) {
+            throw new Error(`Error en la respuesta: ${response.status}`);
         }
         
-        return parseFoodAnalysisResponse(result.choices[0].message.content);
+        const result = await response.json();
+        
+        return parseFoodAnalysisResponse(result.content);
         
     } catch (error) {
         console.error('Error al analizar la imagen:', error);

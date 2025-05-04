@@ -1,7 +1,8 @@
 // Servicios de API para reconocimiento de alimentos y obtención de datos nutricionales
 
-import { GOOGLE_CLOUD_CONFIG, NUTRITION_API_CONFIG, OPENAI_CONFIG, AI_PROVIDER, API_PROXY } from './api-config.js';
+import { GOOGLE_CLOUD_CONFIG, NUTRITION_API_CONFIG, OPENAI_CONFIG, AI_PROVIDER, API_PROXY, SUPABASE_CONFIG } from './api-config.js';
 import { showToast } from './ui-helpers.js';
+import { analyzeFood } from '../services/openai-service.js';
 
 /**
  * Convierte una imagen a formato Base64
@@ -27,7 +28,8 @@ export function imageToBase64(file) {
  */
 export async function analyzeImageWithAI(imageFile) {
     // Verificar si se ha configurado una API key
-    if (AI_PROVIDER === 'OPENAI' && OPENAI_CONFIG.API_KEY === 'TU_API_KEY_AQUI') {
+    if (AI_PROVIDER === 'OPENAI' && OPENAI_CONFIG.API_KEY === 'TU_API_KEY_AQUI' && 
+        (AI_PROVIDER !== 'SUPABASE' || !SUPABASE_CONFIG.API_KEY)) {
         showToast('Error: Debes configurar tu API key de OpenAI en api-config.js', 'error');
         throw new Error('API key de OpenAI no configurada');
     } else if (AI_PROVIDER === 'GOOGLE_VISION' && GOOGLE_CLOUD_CONFIG.VISION_API_KEY === 'TU_API_KEY_AQUI') {
@@ -36,11 +38,45 @@ export async function analyzeImageWithAI(imageFile) {
     }
     
     // Usar la API seleccionada
-    if (AI_PROVIDER === 'OPENAI') {
+    if (AI_PROVIDER === 'SUPABASE') {
+        // Convertir imagen a Base64
+        const imageData = await imageToBase64(imageFile);
+        // Extraer solo la parte de base64 sin el prefijo de data URL
+        const base64Data = imageData.split(',')[1];
+        
+        // Usar el servicio de Supabase
+        const result = await analyzeFood(base64Data);
+        
+        // Convertir respuesta de Supabase al formato que espera la aplicación
+        return convertSupabaseResponseToStandardFormat(result);
+    } else if (AI_PROVIDER === 'OPENAI') {
         return analyzeImageWithOpenAI(imageFile);
     } else {
         return analyzeImageWithVision(imageFile);
     }
+}
+
+/**
+ * Convierte la respuesta de Supabase al formato estándar usado por la aplicación
+ * @param {Object} supabaseResult - Resultado del análisis de Supabase
+ * @returns {Array} - Array con el formato esperado por la aplicación
+ */
+function convertSupabaseResponseToStandardFormat(supabaseResult) {
+    if (!supabaseResult || !supabaseResult.foods) {
+        return [];
+    }
+    
+    return supabaseResult.foods.map(food => ({
+        name: food,
+        portion: 'porción estimada',
+        confidence: 90, // Valor por defecto
+        macros: {
+            kcal: Math.round(supabaseResult.calories / supabaseResult.foods.length),
+            protein: Math.round(supabaseResult.macros.protein / supabaseResult.foods.length),
+            carb: Math.round(supabaseResult.macros.carbs / supabaseResult.foods.length),
+            fat: Math.round(supabaseResult.macros.fat / supabaseResult.foods.length)
+        }
+    }));
 }
 
 /**

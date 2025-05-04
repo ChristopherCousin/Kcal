@@ -2,7 +2,8 @@
  * Servicio para el cálculo de objetivos nutricionales con IA
  */
 
-import { OPENAI_CONFIG, GOOGLE_CLOUD_CONFIG, AI_PROVIDER } from '../utils/api-config.js';
+import { OPENAI_CONFIG, GOOGLE_CLOUD_CONFIG, AI_PROVIDER, SUPABASE_CONFIG } from '../utils/api-config.js';
+import { analyzeFood } from './openai-service.js';
 
 /**
  * Calcula objetivos nutricionales utilizando el servicio de IA configurado
@@ -24,9 +25,9 @@ export async function calculateNutritionGoals(profile) {
     console.log('[NUTRITION-API] ====== FORZANDO CÁLCULO CON IA - SIN FALLBACK LOCAL ======');
     
     // Comprobar que tenemos un proveedor válido
-    if (AI_PROVIDER !== 'OPENAI' && AI_PROVIDER !== 'GOOGLE_VISION') {
+    if (AI_PROVIDER !== 'OPENAI' && AI_PROVIDER !== 'GOOGLE_VISION' && AI_PROVIDER !== 'SUPABASE') {
         console.error('[NUTRITION-API] ERROR: Proveedor inválido:', AI_PROVIDER);
-        throw new Error('Proveedor de IA no configurado correctamente. Debe ser OPENAI o GOOGLE_VISION');
+        throw new Error('Proveedor de IA no configurado correctamente. Debe ser OPENAI, GOOGLE_VISION o SUPABASE');
     }
     
     // Mostrar detalles de la configuración
@@ -41,12 +42,20 @@ export async function calculateNutritionGoals(profile) {
         keyConfigured: GOOGLE_CLOUD_CONFIG.VISION_API_KEY !== 'TU_API_KEY_AQUI'
     });
 
+    if (AI_PROVIDER === 'SUPABASE') {
+        console.log('[NUTRITION-API] Configuración Supabase:', {
+            projectUrl: SUPABASE_CONFIG.PROJECT_URL,
+            keyConfigured: !!SUPABASE_CONFIG.API_KEY
+        });
+    }
+
     // Si no hay ninguna API configurada correctamente, usar cálculo local
     if (
         (AI_PROVIDER === 'OPENAI' && (OPENAI_CONFIG.API_KEY === 'TU_API_KEY_AQUI' || OPENAI_CONFIG.API_KEY === 'sk-...')) ||
-        (AI_PROVIDER === 'GOOGLE_VISION' && GOOGLE_CLOUD_CONFIG.VISION_API_KEY === 'TU_API_KEY_AQUI')
+        (AI_PROVIDER === 'GOOGLE_VISION' && GOOGLE_CLOUD_CONFIG.VISION_API_KEY === 'TU_API_KEY_AQUI') ||
+        (AI_PROVIDER === 'SUPABASE' && (!SUPABASE_CONFIG.PROJECT_URL || !SUPABASE_CONFIG.API_KEY))
     ) {
-        console.log('[NUTRITION-API] API key de ejemplo detectada. Usando cálculo local como alternativa');
+        console.log('[NUTRITION-API] API key de ejemplo detectada o configuración incompleta. Usando cálculo local como alternativa');
         return calculateLocally(profile);
     }
     
@@ -55,19 +64,32 @@ export async function calculateNutritionGoals(profile) {
         console.log('[NUTRITION-API] Iniciando cálculo con proveedor principal:', AI_PROVIDER);
         if (AI_PROVIDER === 'OPENAI') {
             return await calculateWithOpenAI(profile);
+        } else if (AI_PROVIDER === 'SUPABASE') {
+            return await calculateWithSupabase(profile);
         } else {
             return await calculateWithGoogleVision(profile);
         }
     } catch (error) {
         console.error(`[NUTRITION-API] Error al calcular con ${AI_PROVIDER}:`, error);
         
-        // Si el proveedor principal falla, intentar con el otro como respaldo
+        // Si el proveedor principal falla, intentar con otro como respaldo
         try {
-            const alternativeProvider = AI_PROVIDER === 'OPENAI' ? 'GOOGLE_VISION' : 'OPENAI';
+            // Determinar proveedor alternativo
+            let alternativeProvider;
+            if (AI_PROVIDER === 'SUPABASE') {
+                alternativeProvider = 'OPENAI';
+            } else if (AI_PROVIDER === 'OPENAI') {
+                alternativeProvider = 'GOOGLE_VISION';
+            } else {
+                alternativeProvider = 'OPENAI';
+            }
+            
             console.log(`[NUTRITION-API] Intentando con proveedor alternativo: ${alternativeProvider}`);
             
             if (alternativeProvider === 'OPENAI') {
                 return await calculateWithOpenAI(profile);
+            } else if (alternativeProvider === 'SUPABASE') {
+                return await calculateWithSupabase(profile);
             } else {
                 return await calculateWithGoogleVision(profile);
             }
@@ -486,4 +508,206 @@ function calculateLocally(profile) {
         fat,
         source: 'Cálculo local'
     };
+}
+
+/**
+ * Calcula objetivos usando Supabase Edge Function
+ * @param {Object} profile - Perfil del usuario
+ * @returns {Promise<Object>} - Objetivos calculados
+ */
+async function calculateWithSupabase(profile) {
+    try {
+        console.log('[NUTRITION-API] Calculando con Supabase...');
+        
+        if (!SUPABASE_CONFIG.PROJECT_URL || !SUPABASE_CONFIG.API_KEY) {
+            console.error('[NUTRITION-API] Error: Configuración de Supabase incompleta');
+            throw new Error('Configuración de Supabase incompleta');
+        }
+        
+        console.log('[NUTRITION-API] Preparando solicitud a Supabase Edge Function...');
+        
+        // Preparar información de composición corporal y otros detalles
+        let bodyCompInfo = '';
+        if (profile.bodyfat) {
+            bodyCompInfo += `- Porcentaje de grasa corporal: ${profile.bodyfat}%\n`;
+        }
+        
+        // Preparar información de trabajo y actividad física
+        let activityInfo = '';
+        if (profile.jobType) {
+            activityInfo += `- Tipo de trabajo: ${profile.jobType}\n`;
+        }
+        
+        if (profile.trainingType && profile.trainingType !== 'none') {
+            activityInfo += `- Tipo de entrenamiento: ${profile.trainingType}\n`;
+            if (profile.trainingFrequency) {
+                activityInfo += `- Frecuencia: ${profile.trainingFrequency} horas semanales\n`;
+            }
+        }
+        
+        // Preparar información dietética
+        let dietInfo = '';
+        if (profile.dietType && profile.dietType !== 'standard') {
+            dietInfo += `- Preferencia alimentaria: ${profile.dietType}\n`;
+        }
+        if (profile.mealsPerDay) {
+            dietInfo += `- Preferencia de comidas: ${profile.mealsPerDay} comidas al día\n`;
+        }
+        
+        // Determinar el objetivo con déficit calórico si está especificado
+        let goalDescription = profile.goalDescription || 'mantenimiento';
+        
+        // Si existe el valor de déficit/superávit específico, usarlo
+        let goalDetailText = '';
+        if (profile.goalDeficit !== undefined) {
+            if (profile.goalDeficit < 0) {
+                goalDetailText = ` (déficit de ${Math.abs(profile.goalDeficit)} calorías)`;
+            } else if (profile.goalDeficit > 0) {
+                goalDetailText = ` (superávit de ${profile.goalDeficit} calorías)`;
+            }
+        }
+        
+        // Crear el mensaje para el análisis
+        const promptMessage = `Calcula un plan nutricional personalizado para una persona con las siguientes características:
+
+DATOS BÁSICOS:
+- Sexo: ${profile.gender === 'male' ? 'Masculino' : 'Femenino'}
+- Edad: ${profile.age} años
+- Peso: ${profile.weight} kg
+- Altura: ${profile.height} cm
+- Nivel de actividad: ${profile.activity}
+- Objetivo: ${goalDescription}${goalDetailText}
+
+${bodyCompInfo ? `COMPOSICIÓN CORPORAL:\n${bodyCompInfo}` : ''}
+${activityInfo ? `ACTIVIDAD Y TRABAJO:\n${activityInfo}` : ''}
+${dietInfo ? `PREFERENCIAS DIETÉTICAS:\n${dietInfo}` : ''}
+
+Por favor, proporciona los siguientes datos en tu respuesta:
+1. BMR (metabolismo basal)
+2. Calorías de mantenimiento
+3. Calorías objetivo según meta especificada
+4. Proteínas (g)
+5. Carbohidratos (g)
+6. Grasas (g)
+7. Distribución recomendada de macronutrientes (% de cada uno)
+8. Recomendación de número de comidas
+9. Ventana de alimentación recomendada
+10. Alimentos recomendados según perfil
+11. Alimentos a evitar según perfil
+12. Suplementos recomendados (si aplica)
+
+Responde SOLO en formato JSON con las siguientes propiedades como mínimo: bmr, maintenance, goalCalories, protein, carbs, fat, proteinPercent, carbsPercent, fatPercent, mealsPerDay, feedingWindow, recommendedFoods, foodsToAvoid, supplements.
+Asegúrate de que todos los valores numéricos sean enteros sin decimales.`;
+
+        // Usar la Edge Function analyze-food que ya existe pero adaptada para este caso
+        try {
+            console.log('[NUTRITION-API] Enviando solicitud a Supabase Edge Function analyze-food (adaptada para nutrición)...');
+            
+            // Vamos a usar la función analyze-food pero con un "prompt" especial para calcular objetivos
+            const response = await fetch(`${SUPABASE_CONFIG.PROJECT_URL}/functions/v1/analyze-food`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_CONFIG.API_KEY}`
+                },
+                body: JSON.stringify({
+                    prompt: promptMessage,
+                    nutritionCalculation: true, // Indicador especial para el servidor
+                    profileData: profile // Enviar datos del perfil completo por si se necesitan
+                })
+            });
+            
+            if (!response.ok) {
+                console.error('[NUTRITION-API] Error en respuesta de Supabase:', response.status);
+                throw new Error(`Error en la respuesta de Supabase: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('[NUTRITION-API] Respuesta de Supabase recibida:', result);
+            
+            // Verificar si tenemos la propiedad content en la respuesta
+            if (!result.content) {
+                console.error('[NUTRITION-API] Formato de respuesta inválido de Supabase');
+                throw new Error('Formato de respuesta inválido de Supabase');
+            }
+            
+            // Procesar la respuesta
+            let recommendations;
+            try {
+                // Intentar analizar el contenido como JSON directamente
+                if (typeof result.content === 'string') {
+                    // Extraer solo el JSON de la respuesta si viene en formato string
+                    const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+                    const jsonStr = jsonMatch ? jsonMatch[0] : result.content;
+                    recommendations = JSON.parse(jsonStr);
+                } else if (typeof result.content === 'object') {
+                    // Si ya viene como objeto, usarlo directamente
+                    recommendations = result.content;
+                } else {
+                    throw new Error('Formato de contenido inesperado');
+                }
+            } catch (jsonError) {
+                console.error('[NUTRITION-API] Error al analizar JSON de Supabase:', jsonError);
+                throw new Error('No se pudo procesar la respuesta de Supabase');
+            }
+            
+            // Validar y asegurar que todos los campos necesarios existen
+            const requiredFields = ['bmr', 'maintenance', 'goalCalories', 'protein', 'carbs', 'fat'];
+            const missingFields = requiredFields.filter(field => recommendations[field] === undefined);
+            
+            if (missingFields.length > 0) {
+                console.error('[NUTRITION-API] Faltan campos en la respuesta de Supabase:', missingFields);
+                
+                // Calcular los campos faltantes
+                if (!recommendations.bmr) {
+                    recommendations.bmr = calculateBasalMetabolicRate(profile);
+                }
+                if (!recommendations.maintenance) {
+                    recommendations.maintenance = Math.round(recommendations.bmr * profile.activity);
+                }
+                if (!recommendations.goalCalories) {
+                    recommendations.goalCalories = calculateGoalCalories(profile, recommendations.maintenance);
+                }
+                if (!recommendations.protein) {
+                    recommendations.protein = Math.round(profile.weight * 1.8);
+                }
+                if (!recommendations.carbs) {
+                    const proteinCals = recommendations.protein * 4;
+                    const fatCals = (recommendations.fat || Math.round(recommendations.goalCalories * 0.25 / 9)) * 9;
+                    recommendations.carbs = Math.round((recommendations.goalCalories - proteinCals - fatCals) / 4);
+                }
+                if (!recommendations.fat) {
+                    recommendations.fat = Math.round(recommendations.goalCalories * 0.25 / 9);
+                }
+            }
+            
+            // Asegurar que todos los valores son números
+            for (const key of requiredFields) {
+                if (typeof recommendations[key] === 'string') {
+                    recommendations[key] = parseInt(recommendations[key]);
+                }
+            }
+            
+            // Añadir fuente
+            recommendations.source = 'Supabase + OpenAI';
+            
+            console.log('[NUTRITION-API] Recomendaciones finales de Supabase:', recommendations);
+            return recommendations;
+            
+        } catch (error) {
+            console.error('[NUTRITION-API] Error al comunicarse con Supabase:', error);
+            
+            // Si falla la llamada a Supabase, intentamos con OpenAI directamente como alternativa
+            console.log('[NUTRITION-API] Intentando usar OpenAI directamente como alternativa...');
+            try {
+                return await calculateWithOpenAI(profile);
+            } catch (openaiError) {
+                console.error('[NUTRITION-API] Error al calcular con OpenAI como alternativa:', openaiError);
+                throw error; // Seguimos lanzando el error original de Supabase
+            }
+        }
+    } catch (error) {
+        console.error('[NUTRITION-API] Error al calcular con Supabase:', error);
+        throw error;
+    }
 } 
